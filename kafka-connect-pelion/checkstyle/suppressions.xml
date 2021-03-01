@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Puppy Crawl//DTD Suppressions 1.1//EN"
+        "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <!-- relax line-length checks for configuration -->
+    <suppress checks="LineLength" files="PelionSourceConnectorConfig.java|PelionSourceTaskConfig.java|PelionSinkConnectorConfig.java|PelionSinkTaskConfig.java"/>
+    <suppress checks="Header" files="kafka-connect-pelion-version.properties"/>
+    <suppress checks="Header" files="log4j.properties"/>
+</suppressions>

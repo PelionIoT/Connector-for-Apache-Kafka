@@ -1,0 +1,7 @@
+#!/usr/bin/env groovy
+common {
+  slackChannel = '#pelion-all'
+  upstreamProjects = 'pelion/kafka-connect-pelion'
+  pintMerge = true
+  downStreamValidate = false
+}
