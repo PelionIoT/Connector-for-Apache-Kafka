@@ -41,6 +41,7 @@ public class PelionSourceTaskTest {
   public void setup() {
     Map<String, String> props = new HashMap<>();
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
+    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
     props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
     props.put("subscriptions.presub1.resource-path", "/3200/0/5501, /3201/0/5853");

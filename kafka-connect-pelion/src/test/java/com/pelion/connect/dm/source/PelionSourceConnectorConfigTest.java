@@ -36,6 +36,7 @@ public class PelionSourceConnectorConfigTest {
     props = new HashMap<>();
     props.put(PelionSourceConnectorConfig.PELION_API_HOST_CONFIG, "api.us-east-1.mbedcloud.com");
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
+    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "sub1, sub2");
   }
 

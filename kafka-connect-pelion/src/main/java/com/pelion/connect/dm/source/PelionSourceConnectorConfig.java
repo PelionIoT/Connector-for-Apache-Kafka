@@ -32,6 +32,9 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
   public static final String PELION_ACCESS_KEY_LIST_CONFIG = "pelion.access.key.list";
   private static final String PELION_ACCESS_KEY_LIST_DOC = "A list of Pelion Access Keys be distributed to the tasks of this connector.";
 
+  public static final String TOPIC_PREFIX = "topic.prefix";
+  private static final String TOPIC_PREFIX_DOC = "The prefix to use when constructing the topic names to store Pelion messages.";
+
   public static final String SUBSCRIPTIONS_GROUP = "Subscriptions";
   public static final String SUBSCRIPTIONS_CONFIG = "subscriptions";
   private static final String SUBSCRIPTIONS_DOC = "List of subscription aliases.";
@@ -50,6 +53,8 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
             ConfigDef.Importance.MEDIUM, PELION_API_HOST_DOC)
         .define(PELION_ACCESS_KEY_LIST_CONFIG, ConfigDef.Type.LIST,
             ConfigDef.Importance.HIGH, PELION_ACCESS_KEY_LIST_DOC)
+        .define(TOPIC_PREFIX, ConfigDef.Type.STRING,
+            ConfigDef.Importance.HIGH, TOPIC_PREFIX_DOC)
         .define(SUBSCRIPTIONS_CONFIG, ConfigDef.Type.LIST,
             ConfigDef.Importance.HIGH, SUBSCRIPTIONS_DOC,
             SUBSCRIPTIONS_GROUP, -1,
