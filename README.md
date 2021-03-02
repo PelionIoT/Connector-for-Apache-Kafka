@@ -58,3 +58,19 @@ pelion.access.key=<access_key>
 confluent local services connect connector load connect-pelion-sink -c kafka-connect-pelion/config/sink-quickstart-pelion.properties
 confluent local services connect connector unload connect-pelion-sink
 ```
+
+# Development
+
+## Building the source
+
+```bash
+mvn clean package
+```
+
+## Contributions
+
+Contributions are always welcome! Before you start any development please,  an issue and
+start a discussion. Create a pull request against your newly created issue and we're happy to see
+if we can merge your pull request. First and foremost any time you're adding code to the code base
+you need to include test coverage. Make sure that you run `mvn clean package` before submitting your
+pull to ensure that all of the tests, checkstyle rules, and the package can be successfully built.
