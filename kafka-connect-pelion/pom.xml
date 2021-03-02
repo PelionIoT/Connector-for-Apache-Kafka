@@ -216,7 +216,7 @@
                             <dockerTag>${project.version}</dockerTag>
 
                             <componentTypes>
-                                <!--<componentType>sink</componentType>-->
+                                <componentType>sink</componentType>
                                 <componentType>source</componentType>
                             </componentTypes>
 
