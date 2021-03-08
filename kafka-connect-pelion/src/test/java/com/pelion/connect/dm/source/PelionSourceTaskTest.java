@@ -43,6 +43,7 @@ public class PelionSourceTaskTest {
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
     props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
+    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
     props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
     props.put("subscriptions.presub1.resource-path", "/3200/0/5501, /3201/0/5853");
     props.put("subscriptions.presub2.endpoint-type", "Light");
@@ -73,9 +74,9 @@ public class PelionSourceTaskTest {
         "      },\n" +
         "      {\n" +
         "         \"ep\":\"0176c7561cf3000000000001001122d4\",\n" +
-        "         \"path\":\"/3200/0/5501\",\n" +
+        "         \"path\":\"/3201/0/5853\",\n" +
         "         \"ct\":\"text/plain\",\n" +
-        "         \"payload\":\"NTA4\",\n" +
+        "         \"payload\":\"MTAwOjEwMDoxMDA6MTAwOjEwMDoxMDA=\",\n" +
         "         \"max-age\":0,\n" +
         "         \"uid\":\"0f2e03b5-1455-3nce-ba53-adacd4c2waf1\",\n" +
         "         \"timestamp\":1614180568514," +
@@ -95,21 +96,25 @@ public class PelionSourceTaskTest {
     assertEquals("01767982c9250000000000010011579e", obj.get("ep"));
     assertEquals("/3200/0/5501", obj.get("path"));
     assertEquals("text/plain", obj.get("ct"));
-    assertEquals("406", obj.get("payload"));
+    assertEquals("NDA2", obj.get("payload_b64"));
     assertEquals(0, obj.get("max_age"));
     assertEquals("0d8e08c3-2311-4ede-aa53-fdaff2b3fad3", obj.get("uid"));
     assertEquals(1614180566644L, obj.get("timestamp"));
     assertEquals("01767982c9250000000000010011579e", obj.get("original_ep"));
+    // the generated payload should be integer according to the provided mapping
+    assertEquals(406L, obj.getStruct("payload_0").get("l"));
 
     obj = (Struct) records.get(1).value();
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("ep"));
-    assertEquals("/3200/0/5501", obj.get("path"));
+    assertEquals("/3201/0/5853", obj.get("path"));
     assertEquals("text/plain", obj.get("ct"));
-    assertEquals("508", obj.get("payload"));
+    assertEquals("MTAwOjEwMDoxMDA6MTAwOjEwMDoxMDA=", obj.get("payload_b64"));
     assertEquals(0, obj.get("max_age"));
     assertEquals("0f2e03b5-1455-3nce-ba53-adacd4c2waf1", obj.get("uid"));
     assertEquals(1614180568514L, obj.get("timestamp"));
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("original_ep"));
+    // the generated payload should be string according to the provided mapping
+    assertEquals("100:100:100:100:100:100", obj.getStruct("payload_0").get("s"));
   }
 
   @Test

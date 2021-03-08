@@ -27,10 +27,11 @@ The table below outlines information about each configuration setting:
 | pelion.api.host | String | No | api.us-east-1.mbedcloud.com | The Pelion API host. Not required unless you use an on-premise instance. | 
 | pelion.access.key.list | List | Yes | None | A list of [Pelion Access Keys](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html). The list should match the number of tasks configured since each task would be assigned an access key from the list. _NOTE: Each Access Key should belong to a different Pelion Application group._ |
 | topic.prefix | String | Yes | None | The prefix to use when constructing the topic names to store Pelion messages. We follow the schema: `topic.prefix-`{notifications,registrations,async-responses} |
-| subscriptions| List | Yes | None | A list of custom names given for each [pre-subscription](https://developer.pelion.com/docs/device-management/current/resources/resource-change-webapp.html#presubscribing-to-resources-based-on-rules) configuration. During initial connector bootstrap, the list would be equally distributed according to the provided `max.tasks`. |
-| subscriptions.\<name>.endpoint-name| String | Yes | None | The endpoint ID (optionally having an * character at the end) e.g: "node-001" **or** "node*". |
-| subscriptions.\<name>.resource-path| List | Yes | None | List of resources to pre-subscribe (optionally having an * character at the end) e.g: "/3200/0/5501, /3303/*, ..". |
-| subscriptions.\<name>.endpoint-type| String | Yes | None | The endpoint type e.g: "Sensor". |
+| resource.type.mapping | List | No | Empty | A list of resource id's and their respective data types.The form should be <resource_id>:{s:string, i:integer, d:double: b:bool}. If not defined, payload would be processed as a string. |
+| subscriptions| List | Yes | None | A list of custom name aliases given for each [pre-subscription](https://developer.pelion.com/docs/device-management/current/resources/resource-change-webapp.html#presubscribing-to-resources-based-on-rules) configuration. During initial connector bootstrap, the list would be equally distributed according to the provided `max.tasks`. |
+| subscriptions.$alias.endpoint-name| String | Yes | None | The endpoint ID (optionally having an * character at the end) e.g: "node-001" **or** "node*". |
+| subscriptions.$alias.resource-path| List | Yes | None | List of resources to pre-subscribe (optionally having an * character at the end) e.g: "/3200/0/5501, /3303/*, ..". |
+| subscriptions.$alias.endpoint-type| String | Yes | None | The endpoint type e.g: "Sensor". |
 
 > Note: For protecting the access keys and avoiding being specified in a properties file, follow the [Externalizing Secrets](https://docs.confluent.io/platform/current/connect/security.html#externalizing-secrets) guide
 > provided by Confluent to securely store and utilize secrets in connector configurations.

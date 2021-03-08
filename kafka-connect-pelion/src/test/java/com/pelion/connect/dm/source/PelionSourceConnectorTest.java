@@ -34,9 +34,10 @@ public class PelionSourceConnectorTest {
   @Before
   public void setup() {
     props = new HashMap<>();
-    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2, key3, key4, key5");
+    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
     props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
+    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
 
     connector = new PelionSourceConnector();
   }
@@ -47,7 +48,9 @@ public class PelionSourceConnectorTest {
   }
 
   @Test
-  public void shouldHonourTheNumberOfSubscriptionsIfMaxTasksIsGreater() {
+  public void shouldHonourTheNumberOfAccessKeysIfMaxTasksIsGreater() {
+    // override
+    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2, key3, key4, key5");
     connector.start(props);
     List<Map<String, String>> taskConfigs = connector.taskConfigs(100);
     assertEquals(taskConfigs.size(), 5);
@@ -55,20 +58,15 @@ public class PelionSourceConnectorTest {
 
   @Test(expected = ConnectException.class)
   public void shouldThrowExceptionIfMaxTasksDiffersFromTheNumberOfAccessKeys() {
-    Map<String, String> propsInvalid = new HashMap<>();
-    propsInvalid.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
-    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
-    propsInvalid.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3");
-    connector.start(propsInvalid);
+    // override
+    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
+    connector.start(props);
     connector.taskConfigs(3);
   }
 
   @Test
   public void shouldCorrectlyDistributeConfigsPerTask() {
-    Map<String, String> props = new HashMap<>();
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
-    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
-    props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
     props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
     props.put("subscriptions.presub1.resource-path", "/3200/0/5501, /3201/0/5853");
     props.put("subscriptions.presub2.endpoint-type", "Light");
@@ -91,6 +89,8 @@ public class PelionSourceConnectorTest {
         task1Config.getPassword(PelionSourceTaskConfig.PELION_TASK_ACCESS_KEY_CONFIG).value());
     assertEquals(true,
         task1Config.getBoolean(PelionSourceTaskConfig.PELION_TASK_PUBLISH_REGISTRATIONS));
+    assertEquals(Arrays.asList("1:i", "5501:i", "21:i", "5853:s"),
+        task1Config.getList(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG));
 
     // 'pre-sub1'
     assertEquals("01767982c9250000000000010011579e",
@@ -146,6 +146,8 @@ public class PelionSourceConnectorTest {
         task2Config.getPassword(PelionSourceTaskConfig.PELION_TASK_ACCESS_KEY_CONFIG).value());
     assertEquals(false,
         task2Config.getBoolean(PelionSourceTaskConfig.PELION_TASK_PUBLISH_REGISTRATIONS));
+    assertEquals(Arrays.asList("1:i", "5501:i", "21:i", "5853:s"),
+        task2Config.getList(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG));
 
     // 'pre-sub4'
     assertNull(task2Config.getString(String.format("subscriptions.%s.%s",

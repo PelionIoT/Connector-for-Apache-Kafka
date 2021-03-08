@@ -25,9 +25,13 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class PelionConnectorUtils {
 
@@ -35,6 +39,11 @@ public class PelionConnectorUtils {
 
   private static final String PATH = "/kafka-connect-pelion-version.properties";
   private static String version = "unknown";
+
+  public static final String INTEGER = "i";
+  public static final String DOUBLE = "d";
+  public static final String BOOLEAN = "b";
+  public static final String STRING = "s";
 
   static {
     try (InputStream stream = PelionConnectorUtils.class.getResourceAsStream(PATH)) {
@@ -90,5 +99,37 @@ public class PelionConnectorUtils {
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
+  }
+
+  public static Map<String, List<String>> uniqueIndex(List<String> mappings) {
+    Map<String, List<String>> multimap;
+
+    class ResourceType {
+      String resourceId;
+      String type;
+
+      ResourceType(String value) {
+        String[] tokenize = value.split(":");
+        this.resourceId = tokenize[0];
+        this.type = tokenize[1];
+      }
+
+      public String getResourceId() {
+        return resourceId;
+      }
+
+      public String getType() {
+        return type;
+      }
+    }
+    List<ResourceType> list = new ArrayList<>();
+    mappings.forEach(s -> list.add(new ResourceType(s)));
+
+    multimap = list
+        .stream()
+        .collect(Collectors.groupingBy(ResourceType::getType,
+            Collectors.mapping(ResourceType::getResourceId, Collectors.toList())));
+
+    return multimap;
   }
 }

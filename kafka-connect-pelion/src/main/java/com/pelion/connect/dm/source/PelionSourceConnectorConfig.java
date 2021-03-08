@@ -20,6 +20,7 @@ import com.pelion.connect.dm.utils.PelionAPI;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class PelionSourceConnectorConfig extends AbstractConfig {
@@ -38,6 +39,10 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
   public static final String SUBSCRIPTIONS_GROUP = "Subscriptions";
   public static final String SUBSCRIPTIONS_CONFIG = "subscriptions";
   private static final String SUBSCRIPTIONS_DOC = "List of subscription aliases.";
+
+  public static final String RESOURCE_TYPE_MAPPING_CONFIG = "resource.type.mapping";
+  private static final String RESOURCE_TYPE_MAPPING_DOC = "A list of resource id's and their respective data types. "
+      + "The form should be <resource_id>:{s:string, i:integer, d:double: b:bool}. If not defined, payload would be processed as a string.";
 
   public PelionSourceConnectorConfig(final Map<?, ?> originals) {
     this(config(), originals);
@@ -58,6 +63,8 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
         .define(SUBSCRIPTIONS_CONFIG, ConfigDef.Type.LIST,
             ConfigDef.Importance.HIGH, SUBSCRIPTIONS_DOC,
             SUBSCRIPTIONS_GROUP, -1,
-            ConfigDef.Width.NONE, SUBSCRIPTIONS_CONFIG);
+            ConfigDef.Width.NONE, SUBSCRIPTIONS_CONFIG)
+        .define(RESOURCE_TYPE_MAPPING_CONFIG, ConfigDef.Type.LIST, Collections.<String>emptyList(),
+            ConfigDef.Importance.MEDIUM, RESOURCE_TYPE_MAPPING_DOC);
   }
 }

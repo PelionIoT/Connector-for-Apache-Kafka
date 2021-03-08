@@ -68,17 +68,24 @@ message NotificationData {
   string ct = 3;
   // Base64 encoded payload.
   // (example: My4zMQ==)
-  string payload = 4;
+  string payload_b64 = 4;
+  // Actual payload which is determined at run-time by user provided config.
+  oneof payload {
+    string s = 5;
+    int64 l = 6;
+    double d = 7;
+    bool  b = 8;
+  }
   // Max age value is an integer number of seconds between 0 and
   // 2^32-1, but the actual maximum cache time is limited to 3 days.
   // (example: 60)
-  int32 max_age = 5;
+  int32 max_age = 9;
   // This is message ID, and can be used for duplicate detection.
-  string uid = 6;
+  string uid = 10;
   // Timestamp of when notification was received.
-  int64 timestamp = 7;
+  int64 timestamp = 11;
   // This is the endpoint_name from the device.
-  string original_ep = 8;
+  string original_ep = 12;
 }
 
 message ResourceData {

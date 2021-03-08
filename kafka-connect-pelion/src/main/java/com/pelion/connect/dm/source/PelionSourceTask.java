@@ -39,9 +39,13 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.BOOLEAN;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.DOUBLE;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.INTEGER;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.base64Decode;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.getVersion;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.readFile;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.uniqueIndex;
 import static com.pelion.protobuf.PelionProtos.EndpointData;
 import static com.pelion.protobuf.PelionProtos.ResourceData;
 
@@ -64,6 +68,8 @@ public class PelionSourceTask extends SourceTask {
   private String arTopic;
 
   private boolean shouldPublishRegistrations;
+
+  private Map<String, List<String>> types;
 
   @Override
   public String version() {
@@ -90,6 +96,8 @@ public class PelionSourceTask extends SourceTask {
         props.get(PelionSourceConnectorConfig.TOPIC_PREFIX));
     // whether this task should publish registrations events
     this.shouldPublishRegistrations = config.getBoolean(PelionSourceTaskConfig.PELION_TASK_PUBLISH_REGISTRATIONS);
+    // configured type mappings
+    this.types = uniqueIndex(config.getList(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG));
 
     this.queue = q != null ? q : new LinkedBlockingQueue<>();
     this.pelionAPI = api != null ? api :
@@ -201,13 +209,30 @@ public class PelionSourceTask extends SourceTask {
     notification.setEp(jsonNode.get("ep").asText());
     notification.setPath(jsonNode.get("path").asText());
     notification.setCt(jsonNode.get("ct").asText());
-    notification.setPayload(base64Decode(jsonNode.get("payload").asText()));
+    notification.setPayloadB64(jsonNode.get("payload").asText());
     notification.setMaxAge(jsonNode.get("max-age").asInt());
     notification.setUid(jsonNode.get("uid").asText());
     notification.setTimestamp(jsonNode.get("timestamp").asLong());
     notification.setOriginalEp(jsonNode.get("original-ep").asText());
 
+    // determine resource
+    String resource = notification.getPath().split("/")[3];
+    // check the type associated with the resource
+    if (mappingExists(INTEGER, resource)) {
+      notification.setL(Long.parseLong(base64Decode(notification.getPayloadB64())));
+    } else if (mappingExists(DOUBLE, resource)) {
+      notification.setD(Double.parseDouble(base64Decode(notification.getPayloadB64())));
+    } else if (mappingExists(BOOLEAN, resource)) {
+      notification.setB(Boolean.parseBoolean(base64Decode(notification.getPayloadB64())));
+    } else { // treat it as a generic string
+      notification.setS(base64Decode(notification.getPayloadB64()));
+    }
+
     return notification.build();
+  }
+
+  private boolean mappingExists(String type, String value) {
+    return types.containsKey(type) && types.get(type).contains(value);
   }
 
   private EndpointData buildEndpointData(JsonNode jsonNode) {

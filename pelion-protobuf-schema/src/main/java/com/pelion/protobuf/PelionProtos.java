@@ -2790,21 +2790,51 @@ public final class PelionProtos {
      * (example: My4zMQ==)
      * </pre>
      *
-     * <code>string payload = 4;</code>
-     * @return The payload.
+     * <code>string payload_b64 = 4;</code>
+     * @return The payloadB64.
      */
-    java.lang.String getPayload();
+    java.lang.String getPayloadB64();
     /**
      * <pre>
      * Base64 encoded payload.
      * (example: My4zMQ==)
      * </pre>
      *
-     * <code>string payload = 4;</code>
-     * @return The bytes for payload.
+     * <code>string payload_b64 = 4;</code>
+     * @return The bytes for payloadB64.
      */
     com.google.protobuf.ByteString
-        getPayloadBytes();
+        getPayloadB64Bytes();
+
+    /**
+     * <code>string s = 5;</code>
+     * @return The s.
+     */
+    java.lang.String getS();
+    /**
+     * <code>string s = 5;</code>
+     * @return The bytes for s.
+     */
+    com.google.protobuf.ByteString
+        getSBytes();
+
+    /**
+     * <code>int64 l = 6;</code>
+     * @return The l.
+     */
+    long getL();
+
+    /**
+     * <code>double d = 7;</code>
+     * @return The d.
+     */
+    double getD();
+
+    /**
+     * <code>bool b = 8;</code>
+     * @return The b.
+     */
+    boolean getB();
 
     /**
      * <pre>
@@ -2813,7 +2843,7 @@ public final class PelionProtos {
      * (example: 60)
      * </pre>
      *
-     * <code>int32 max_age = 5;</code>
+     * <code>int32 max_age = 9;</code>
      * @return The maxAge.
      */
     int getMaxAge();
@@ -2823,7 +2853,7 @@ public final class PelionProtos {
      * This is message ID, and can be used for duplicate detection.
      * </pre>
      *
-     * <code>string uid = 6;</code>
+     * <code>string uid = 10;</code>
      * @return The uid.
      */
     java.lang.String getUid();
@@ -2832,7 +2862,7 @@ public final class PelionProtos {
      * This is message ID, and can be used for duplicate detection.
      * </pre>
      *
-     * <code>string uid = 6;</code>
+     * <code>string uid = 10;</code>
      * @return The bytes for uid.
      */
     com.google.protobuf.ByteString
@@ -2843,7 +2873,7 @@ public final class PelionProtos {
      * Timestamp of when notification was received.
      * </pre>
      *
-     * <code>int64 timestamp = 7;</code>
+     * <code>int64 timestamp = 11;</code>
      * @return The timestamp.
      */
     long getTimestamp();
@@ -2853,7 +2883,7 @@ public final class PelionProtos {
      * This is the endpoint_name from the device.
      * </pre>
      *
-     * <code>string original_ep = 8;</code>
+     * <code>string original_ep = 12;</code>
      * @return The originalEp.
      */
     java.lang.String getOriginalEp();
@@ -2862,11 +2892,13 @@ public final class PelionProtos {
      * This is the endpoint_name from the device.
      * </pre>
      *
-     * <code>string original_ep = 8;</code>
+     * <code>string original_ep = 12;</code>
      * @return The bytes for originalEp.
      */
     com.google.protobuf.ByteString
         getOriginalEpBytes();
+
+    public com.pelion.protobuf.PelionProtos.NotificationData.PayloadCase getPayloadCase();
   }
   /**
    * Protobuf type {@code pelion.NotificationData}
@@ -2884,7 +2916,7 @@ public final class PelionProtos {
       ep_ = "";
       path_ = "";
       ct_ = "";
-      payload_ = "";
+      payloadB64_ = "";
       uid_ = "";
       originalEp_ = "";
     }
@@ -2940,26 +2972,47 @@ public final class PelionProtos {
             case 34: {
               java.lang.String s = input.readStringRequireUtf8();
 
+              payloadB64_ = s;
+              break;
+            }
+            case 42: {
+              java.lang.String s = input.readStringRequireUtf8();
+              payloadCase_ = 5;
               payload_ = s;
               break;
             }
-            case 40: {
+            case 48: {
+              payloadCase_ = 6;
+              payload_ = input.readInt64();
+              break;
+            }
+            case 57: {
+              payloadCase_ = 7;
+              payload_ = input.readDouble();
+              break;
+            }
+            case 64: {
+              payloadCase_ = 8;
+              payload_ = input.readBool();
+              break;
+            }
+            case 72: {
 
               maxAge_ = input.readInt32();
               break;
             }
-            case 50: {
+            case 82: {
               java.lang.String s = input.readStringRequireUtf8();
 
               uid_ = s;
               break;
             }
-            case 56: {
+            case 88: {
 
               timestamp_ = input.readInt64();
               break;
             }
-            case 66: {
+            case 98: {
               java.lang.String s = input.readStringRequireUtf8();
 
               originalEp_ = s;
@@ -2995,6 +3048,51 @@ public final class PelionProtos {
       return com.pelion.protobuf.PelionProtos.internal_static_pelion_NotificationData_fieldAccessorTable
           .ensureFieldAccessorsInitialized(
               com.pelion.protobuf.PelionProtos.NotificationData.class, com.pelion.protobuf.PelionProtos.NotificationData.Builder.class);
+    }
+
+    private int payloadCase_ = 0;
+    private java.lang.Object payload_;
+    public enum PayloadCase
+        implements com.google.protobuf.Internal.EnumLite,
+            com.google.protobuf.AbstractMessage.InternalOneOfEnum {
+      S(5),
+      L(6),
+      D(7),
+      B(8),
+      PAYLOAD_NOT_SET(0);
+      private final int value;
+      private PayloadCase(int value) {
+        this.value = value;
+      }
+      /**
+       * @param value The number of the enum to look for.
+       * @return The enum associated with the given number.
+       * @deprecated Use {@link #forNumber(int)} instead.
+       */
+      @java.lang.Deprecated
+      public static PayloadCase valueOf(int value) {
+        return forNumber(value);
+      }
+
+      public static PayloadCase forNumber(int value) {
+        switch (value) {
+          case 5: return S;
+          case 6: return L;
+          case 7: return D;
+          case 8: return B;
+          case 0: return PAYLOAD_NOT_SET;
+          default: return null;
+        }
+      }
+      public int getNumber() {
+        return this.value;
+      }
+    };
+
+    public PayloadCase
+    getPayloadCase() {
+      return PayloadCase.forNumber(
+          payloadCase_);
     }
 
     public static final int EP_FIELD_NUMBER = 1;
@@ -3135,26 +3233,26 @@ public final class PelionProtos {
       }
     }
 
-    public static final int PAYLOAD_FIELD_NUMBER = 4;
-    private volatile java.lang.Object payload_;
+    public static final int PAYLOAD_B64_FIELD_NUMBER = 4;
+    private volatile java.lang.Object payloadB64_;
     /**
      * <pre>
      * Base64 encoded payload.
      * (example: My4zMQ==)
      * </pre>
      *
-     * <code>string payload = 4;</code>
-     * @return The payload.
+     * <code>string payload_b64 = 4;</code>
+     * @return The payloadB64.
      */
-    public java.lang.String getPayload() {
-      java.lang.Object ref = payload_;
+    public java.lang.String getPayloadB64() {
+      java.lang.Object ref = payloadB64_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
         com.google.protobuf.ByteString bs = 
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        payload_ = s;
+        payloadB64_ = s;
         return s;
       }
     }
@@ -3164,24 +3262,105 @@ public final class PelionProtos {
      * (example: My4zMQ==)
      * </pre>
      *
-     * <code>string payload = 4;</code>
-     * @return The bytes for payload.
+     * <code>string payload_b64 = 4;</code>
+     * @return The bytes for payloadB64.
      */
     public com.google.protobuf.ByteString
-        getPayloadBytes() {
-      java.lang.Object ref = payload_;
+        getPayloadB64Bytes() {
+      java.lang.Object ref = payloadB64_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        payload_ = b;
+        payloadB64_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    public static final int MAX_AGE_FIELD_NUMBER = 5;
+    public static final int S_FIELD_NUMBER = 5;
+    /**
+     * <code>string s = 5;</code>
+     * @return The s.
+     */
+    public java.lang.String getS() {
+      java.lang.Object ref = "";
+      if (payloadCase_ == 5) {
+        ref = payload_;
+      }
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (payloadCase_ == 5) {
+          payload_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>string s = 5;</code>
+     * @return The bytes for s.
+     */
+    public com.google.protobuf.ByteString
+        getSBytes() {
+      java.lang.Object ref = "";
+      if (payloadCase_ == 5) {
+        ref = payload_;
+      }
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        if (payloadCase_ == 5) {
+          payload_ = b;
+        }
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int L_FIELD_NUMBER = 6;
+    /**
+     * <code>int64 l = 6;</code>
+     * @return The l.
+     */
+    public long getL() {
+      if (payloadCase_ == 6) {
+        return (java.lang.Long) payload_;
+      }
+      return 0L;
+    }
+
+    public static final int D_FIELD_NUMBER = 7;
+    /**
+     * <code>double d = 7;</code>
+     * @return The d.
+     */
+    public double getD() {
+      if (payloadCase_ == 7) {
+        return (java.lang.Double) payload_;
+      }
+      return 0D;
+    }
+
+    public static final int B_FIELD_NUMBER = 8;
+    /**
+     * <code>bool b = 8;</code>
+     * @return The b.
+     */
+    public boolean getB() {
+      if (payloadCase_ == 8) {
+        return (java.lang.Boolean) payload_;
+      }
+      return false;
+    }
+
+    public static final int MAX_AGE_FIELD_NUMBER = 9;
     private int maxAge_;
     /**
      * <pre>
@@ -3190,21 +3369,21 @@ public final class PelionProtos {
      * (example: 60)
      * </pre>
      *
-     * <code>int32 max_age = 5;</code>
+     * <code>int32 max_age = 9;</code>
      * @return The maxAge.
      */
     public int getMaxAge() {
       return maxAge_;
     }
 
-    public static final int UID_FIELD_NUMBER = 6;
+    public static final int UID_FIELD_NUMBER = 10;
     private volatile java.lang.Object uid_;
     /**
      * <pre>
      * This is message ID, and can be used for duplicate detection.
      * </pre>
      *
-     * <code>string uid = 6;</code>
+     * <code>string uid = 10;</code>
      * @return The uid.
      */
     public java.lang.String getUid() {
@@ -3224,7 +3403,7 @@ public final class PelionProtos {
      * This is message ID, and can be used for duplicate detection.
      * </pre>
      *
-     * <code>string uid = 6;</code>
+     * <code>string uid = 10;</code>
      * @return The bytes for uid.
      */
     public com.google.protobuf.ByteString
@@ -3241,28 +3420,28 @@ public final class PelionProtos {
       }
     }
 
-    public static final int TIMESTAMP_FIELD_NUMBER = 7;
+    public static final int TIMESTAMP_FIELD_NUMBER = 11;
     private long timestamp_;
     /**
      * <pre>
      * Timestamp of when notification was received.
      * </pre>
      *
-     * <code>int64 timestamp = 7;</code>
+     * <code>int64 timestamp = 11;</code>
      * @return The timestamp.
      */
     public long getTimestamp() {
       return timestamp_;
     }
 
-    public static final int ORIGINAL_EP_FIELD_NUMBER = 8;
+    public static final int ORIGINAL_EP_FIELD_NUMBER = 12;
     private volatile java.lang.Object originalEp_;
     /**
      * <pre>
      * This is the endpoint_name from the device.
      * </pre>
      *
-     * <code>string original_ep = 8;</code>
+     * <code>string original_ep = 12;</code>
      * @return The originalEp.
      */
     public java.lang.String getOriginalEp() {
@@ -3282,7 +3461,7 @@ public final class PelionProtos {
      * This is the endpoint_name from the device.
      * </pre>
      *
-     * <code>string original_ep = 8;</code>
+     * <code>string original_ep = 12;</code>
      * @return The bytes for originalEp.
      */
     public com.google.protobuf.ByteString
@@ -3322,20 +3501,35 @@ public final class PelionProtos {
       if (!getCtBytes().isEmpty()) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 3, ct_);
       }
-      if (!getPayloadBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, payload_);
+      if (!getPayloadB64Bytes().isEmpty()) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, payloadB64_);
+      }
+      if (payloadCase_ == 5) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 5, payload_);
+      }
+      if (payloadCase_ == 6) {
+        output.writeInt64(
+            6, (long)((java.lang.Long) payload_));
+      }
+      if (payloadCase_ == 7) {
+        output.writeDouble(
+            7, (double)((java.lang.Double) payload_));
+      }
+      if (payloadCase_ == 8) {
+        output.writeBool(
+            8, (boolean)((java.lang.Boolean) payload_));
       }
       if (maxAge_ != 0) {
-        output.writeInt32(5, maxAge_);
+        output.writeInt32(9, maxAge_);
       }
       if (!getUidBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, uid_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 10, uid_);
       }
       if (timestamp_ != 0L) {
-        output.writeInt64(7, timestamp_);
+        output.writeInt64(11, timestamp_);
       }
       if (!getOriginalEpBytes().isEmpty()) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 8, originalEp_);
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 12, originalEp_);
       }
       unknownFields.writeTo(output);
     }
@@ -3355,22 +3549,40 @@ public final class PelionProtos {
       if (!getCtBytes().isEmpty()) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(3, ct_);
       }
-      if (!getPayloadBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, payload_);
+      if (!getPayloadB64Bytes().isEmpty()) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, payloadB64_);
+      }
+      if (payloadCase_ == 5) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, payload_);
+      }
+      if (payloadCase_ == 6) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(
+              6, (long)((java.lang.Long) payload_));
+      }
+      if (payloadCase_ == 7) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeDoubleSize(
+              7, (double)((java.lang.Double) payload_));
+      }
+      if (payloadCase_ == 8) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(
+              8, (boolean)((java.lang.Boolean) payload_));
       }
       if (maxAge_ != 0) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(5, maxAge_);
+          .computeInt32Size(9, maxAge_);
       }
       if (!getUidBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, uid_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(10, uid_);
       }
       if (timestamp_ != 0L) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt64Size(7, timestamp_);
+          .computeInt64Size(11, timestamp_);
       }
       if (!getOriginalEpBytes().isEmpty()) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(8, originalEp_);
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(12, originalEp_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -3393,8 +3605,8 @@ public final class PelionProtos {
           .equals(other.getPath())) return false;
       if (!getCt()
           .equals(other.getCt())) return false;
-      if (!getPayload()
-          .equals(other.getPayload())) return false;
+      if (!getPayloadB64()
+          .equals(other.getPayloadB64())) return false;
       if (getMaxAge()
           != other.getMaxAge()) return false;
       if (!getUid()
@@ -3403,6 +3615,28 @@ public final class PelionProtos {
           != other.getTimestamp()) return false;
       if (!getOriginalEp()
           .equals(other.getOriginalEp())) return false;
+      if (!getPayloadCase().equals(other.getPayloadCase())) return false;
+      switch (payloadCase_) {
+        case 5:
+          if (!getS()
+              .equals(other.getS())) return false;
+          break;
+        case 6:
+          if (getL()
+              != other.getL()) return false;
+          break;
+        case 7:
+          if (java.lang.Double.doubleToLongBits(getD())
+              != java.lang.Double.doubleToLongBits(
+                  other.getD())) return false;
+          break;
+        case 8:
+          if (getB()
+              != other.getB()) return false;
+          break;
+        case 0:
+        default:
+      }
       if (!unknownFields.equals(other.unknownFields)) return false;
       return true;
     }
@@ -3420,8 +3654,8 @@ public final class PelionProtos {
       hash = (53 * hash) + getPath().hashCode();
       hash = (37 * hash) + CT_FIELD_NUMBER;
       hash = (53 * hash) + getCt().hashCode();
-      hash = (37 * hash) + PAYLOAD_FIELD_NUMBER;
-      hash = (53 * hash) + getPayload().hashCode();
+      hash = (37 * hash) + PAYLOAD_B64_FIELD_NUMBER;
+      hash = (53 * hash) + getPayloadB64().hashCode();
       hash = (37 * hash) + MAX_AGE_FIELD_NUMBER;
       hash = (53 * hash) + getMaxAge();
       hash = (37 * hash) + UID_FIELD_NUMBER;
@@ -3431,6 +3665,29 @@ public final class PelionProtos {
           getTimestamp());
       hash = (37 * hash) + ORIGINAL_EP_FIELD_NUMBER;
       hash = (53 * hash) + getOriginalEp().hashCode();
+      switch (payloadCase_) {
+        case 5:
+          hash = (37 * hash) + S_FIELD_NUMBER;
+          hash = (53 * hash) + getS().hashCode();
+          break;
+        case 6:
+          hash = (37 * hash) + L_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+              getL());
+          break;
+        case 7:
+          hash = (37 * hash) + D_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+              java.lang.Double.doubleToLongBits(getD()));
+          break;
+        case 8:
+          hash = (37 * hash) + B_FIELD_NUMBER;
+          hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+              getB());
+          break;
+        case 0:
+        default:
+      }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
       return hash;
@@ -3570,7 +3827,7 @@ public final class PelionProtos {
 
         ct_ = "";
 
-        payload_ = "";
+        payloadB64_ = "";
 
         maxAge_ = 0;
 
@@ -3580,6 +3837,8 @@ public final class PelionProtos {
 
         originalEp_ = "";
 
+        payloadCase_ = 0;
+        payload_ = null;
         return this;
       }
 
@@ -3609,11 +3868,24 @@ public final class PelionProtos {
         result.ep_ = ep_;
         result.path_ = path_;
         result.ct_ = ct_;
-        result.payload_ = payload_;
+        result.payloadB64_ = payloadB64_;
+        if (payloadCase_ == 5) {
+          result.payload_ = payload_;
+        }
+        if (payloadCase_ == 6) {
+          result.payload_ = payload_;
+        }
+        if (payloadCase_ == 7) {
+          result.payload_ = payload_;
+        }
+        if (payloadCase_ == 8) {
+          result.payload_ = payload_;
+        }
         result.maxAge_ = maxAge_;
         result.uid_ = uid_;
         result.timestamp_ = timestamp_;
         result.originalEp_ = originalEp_;
+        result.payloadCase_ = payloadCase_;
         onBuilt();
         return result;
       }
@@ -3674,8 +3946,8 @@ public final class PelionProtos {
           ct_ = other.ct_;
           onChanged();
         }
-        if (!other.getPayload().isEmpty()) {
-          payload_ = other.payload_;
+        if (!other.getPayloadB64().isEmpty()) {
+          payloadB64_ = other.payloadB64_;
           onChanged();
         }
         if (other.getMaxAge() != 0) {
@@ -3691,6 +3963,29 @@ public final class PelionProtos {
         if (!other.getOriginalEp().isEmpty()) {
           originalEp_ = other.originalEp_;
           onChanged();
+        }
+        switch (other.getPayloadCase()) {
+          case S: {
+            payloadCase_ = 5;
+            payload_ = other.payload_;
+            onChanged();
+            break;
+          }
+          case L: {
+            setL(other.getL());
+            break;
+          }
+          case D: {
+            setD(other.getD());
+            break;
+          }
+          case B: {
+            setB(other.getB());
+            break;
+          }
+          case PAYLOAD_NOT_SET: {
+            break;
+          }
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -3720,6 +4015,21 @@ public final class PelionProtos {
         }
         return this;
       }
+      private int payloadCase_ = 0;
+      private java.lang.Object payload_;
+      public PayloadCase
+          getPayloadCase() {
+        return PayloadCase.forNumber(
+            payloadCase_);
+      }
+
+      public Builder clearPayload() {
+        payloadCase_ = 0;
+        payload_ = null;
+        onChanged();
+        return this;
+      }
+
 
       private java.lang.Object ep_ = "";
       /**
@@ -4024,23 +4334,23 @@ public final class PelionProtos {
         return this;
       }
 
-      private java.lang.Object payload_ = "";
+      private java.lang.Object payloadB64_ = "";
       /**
        * <pre>
        * Base64 encoded payload.
        * (example: My4zMQ==)
        * </pre>
        *
-       * <code>string payload = 4;</code>
-       * @return The payload.
+       * <code>string payload_b64 = 4;</code>
+       * @return The payloadB64.
        */
-      public java.lang.String getPayload() {
-        java.lang.Object ref = payload_;
+      public java.lang.String getPayloadB64() {
+        java.lang.Object ref = payloadB64_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
-          payload_ = s;
+          payloadB64_ = s;
           return s;
         } else {
           return (java.lang.String) ref;
@@ -4052,17 +4362,17 @@ public final class PelionProtos {
        * (example: My4zMQ==)
        * </pre>
        *
-       * <code>string payload = 4;</code>
-       * @return The bytes for payload.
+       * <code>string payload_b64 = 4;</code>
+       * @return The bytes for payloadB64.
        */
       public com.google.protobuf.ByteString
-          getPayloadBytes() {
-        java.lang.Object ref = payload_;
+          getPayloadB64Bytes() {
+        java.lang.Object ref = payloadB64_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          payload_ = b;
+          payloadB64_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
@@ -4074,17 +4384,17 @@ public final class PelionProtos {
        * (example: My4zMQ==)
        * </pre>
        *
-       * <code>string payload = 4;</code>
-       * @param value The payload to set.
+       * <code>string payload_b64 = 4;</code>
+       * @param value The payloadB64 to set.
        * @return This builder for chaining.
        */
-      public Builder setPayload(
+      public Builder setPayloadB64(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   
-        payload_ = value;
+        payloadB64_ = value;
         onChanged();
         return this;
       }
@@ -4094,12 +4404,12 @@ public final class PelionProtos {
        * (example: My4zMQ==)
        * </pre>
        *
-       * <code>string payload = 4;</code>
+       * <code>string payload_b64 = 4;</code>
        * @return This builder for chaining.
        */
-      public Builder clearPayload() {
+      public Builder clearPayloadB64() {
         
-        payload_ = getDefaultInstance().getPayload();
+        payloadB64_ = getDefaultInstance().getPayloadB64();
         onChanged();
         return this;
       }
@@ -4109,19 +4419,208 @@ public final class PelionProtos {
        * (example: My4zMQ==)
        * </pre>
        *
-       * <code>string payload = 4;</code>
-       * @param value The bytes for payload to set.
+       * <code>string payload_b64 = 4;</code>
+       * @param value The bytes for payloadB64 to set.
        * @return This builder for chaining.
        */
-      public Builder setPayloadBytes(
+      public Builder setPayloadB64Bytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
         
+        payloadB64_ = value;
+        onChanged();
+        return this;
+      }
+
+      /**
+       * <code>string s = 5;</code>
+       * @return The s.
+       */
+      public java.lang.String getS() {
+        java.lang.Object ref = "";
+        if (payloadCase_ == 5) {
+          ref = payload_;
+        }
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (payloadCase_ == 5) {
+            payload_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>string s = 5;</code>
+       * @return The bytes for s.
+       */
+      public com.google.protobuf.ByteString
+          getSBytes() {
+        java.lang.Object ref = "";
+        if (payloadCase_ == 5) {
+          ref = payload_;
+        }
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          if (payloadCase_ == 5) {
+            payload_ = b;
+          }
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>string s = 5;</code>
+       * @param value The s to set.
+       * @return This builder for chaining.
+       */
+      public Builder setS(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  payloadCase_ = 5;
         payload_ = value;
         onChanged();
+        return this;
+      }
+      /**
+       * <code>string s = 5;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearS() {
+        if (payloadCase_ == 5) {
+          payloadCase_ = 0;
+          payload_ = null;
+          onChanged();
+        }
+        return this;
+      }
+      /**
+       * <code>string s = 5;</code>
+       * @param value The bytes for s to set.
+       * @return This builder for chaining.
+       */
+      public Builder setSBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  checkByteStringIsUtf8(value);
+        payloadCase_ = 5;
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+
+      /**
+       * <code>int64 l = 6;</code>
+       * @return The l.
+       */
+      public long getL() {
+        if (payloadCase_ == 6) {
+          return (java.lang.Long) payload_;
+        }
+        return 0L;
+      }
+      /**
+       * <code>int64 l = 6;</code>
+       * @param value The l to set.
+       * @return This builder for chaining.
+       */
+      public Builder setL(long value) {
+        payloadCase_ = 6;
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>int64 l = 6;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearL() {
+        if (payloadCase_ == 6) {
+          payloadCase_ = 0;
+          payload_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      /**
+       * <code>double d = 7;</code>
+       * @return The d.
+       */
+      public double getD() {
+        if (payloadCase_ == 7) {
+          return (java.lang.Double) payload_;
+        }
+        return 0D;
+      }
+      /**
+       * <code>double d = 7;</code>
+       * @param value The d to set.
+       * @return This builder for chaining.
+       */
+      public Builder setD(double value) {
+        payloadCase_ = 7;
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>double d = 7;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearD() {
+        if (payloadCase_ == 7) {
+          payloadCase_ = 0;
+          payload_ = null;
+          onChanged();
+        }
+        return this;
+      }
+
+      /**
+       * <code>bool b = 8;</code>
+       * @return The b.
+       */
+      public boolean getB() {
+        if (payloadCase_ == 8) {
+          return (java.lang.Boolean) payload_;
+        }
+        return false;
+      }
+      /**
+       * <code>bool b = 8;</code>
+       * @param value The b to set.
+       * @return This builder for chaining.
+       */
+      public Builder setB(boolean value) {
+        payloadCase_ = 8;
+        payload_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>bool b = 8;</code>
+       * @return This builder for chaining.
+       */
+      public Builder clearB() {
+        if (payloadCase_ == 8) {
+          payloadCase_ = 0;
+          payload_ = null;
+          onChanged();
+        }
         return this;
       }
 
@@ -4133,7 +4632,7 @@ public final class PelionProtos {
        * (example: 60)
        * </pre>
        *
-       * <code>int32 max_age = 5;</code>
+       * <code>int32 max_age = 9;</code>
        * @return The maxAge.
        */
       public int getMaxAge() {
@@ -4146,7 +4645,7 @@ public final class PelionProtos {
        * (example: 60)
        * </pre>
        *
-       * <code>int32 max_age = 5;</code>
+       * <code>int32 max_age = 9;</code>
        * @param value The maxAge to set.
        * @return This builder for chaining.
        */
@@ -4163,7 +4662,7 @@ public final class PelionProtos {
        * (example: 60)
        * </pre>
        *
-       * <code>int32 max_age = 5;</code>
+       * <code>int32 max_age = 9;</code>
        * @return This builder for chaining.
        */
       public Builder clearMaxAge() {
@@ -4179,7 +4678,7 @@ public final class PelionProtos {
        * This is message ID, and can be used for duplicate detection.
        * </pre>
        *
-       * <code>string uid = 6;</code>
+       * <code>string uid = 10;</code>
        * @return The uid.
        */
       public java.lang.String getUid() {
@@ -4199,7 +4698,7 @@ public final class PelionProtos {
        * This is message ID, and can be used for duplicate detection.
        * </pre>
        *
-       * <code>string uid = 6;</code>
+       * <code>string uid = 10;</code>
        * @return The bytes for uid.
        */
       public com.google.protobuf.ByteString
@@ -4220,7 +4719,7 @@ public final class PelionProtos {
        * This is message ID, and can be used for duplicate detection.
        * </pre>
        *
-       * <code>string uid = 6;</code>
+       * <code>string uid = 10;</code>
        * @param value The uid to set.
        * @return This builder for chaining.
        */
@@ -4239,7 +4738,7 @@ public final class PelionProtos {
        * This is message ID, and can be used for duplicate detection.
        * </pre>
        *
-       * <code>string uid = 6;</code>
+       * <code>string uid = 10;</code>
        * @return This builder for chaining.
        */
       public Builder clearUid() {
@@ -4253,7 +4752,7 @@ public final class PelionProtos {
        * This is message ID, and can be used for duplicate detection.
        * </pre>
        *
-       * <code>string uid = 6;</code>
+       * <code>string uid = 10;</code>
        * @param value The bytes for uid to set.
        * @return This builder for chaining.
        */
@@ -4275,7 +4774,7 @@ public final class PelionProtos {
        * Timestamp of when notification was received.
        * </pre>
        *
-       * <code>int64 timestamp = 7;</code>
+       * <code>int64 timestamp = 11;</code>
        * @return The timestamp.
        */
       public long getTimestamp() {
@@ -4286,7 +4785,7 @@ public final class PelionProtos {
        * Timestamp of when notification was received.
        * </pre>
        *
-       * <code>int64 timestamp = 7;</code>
+       * <code>int64 timestamp = 11;</code>
        * @param value The timestamp to set.
        * @return This builder for chaining.
        */
@@ -4301,7 +4800,7 @@ public final class PelionProtos {
        * Timestamp of when notification was received.
        * </pre>
        *
-       * <code>int64 timestamp = 7;</code>
+       * <code>int64 timestamp = 11;</code>
        * @return This builder for chaining.
        */
       public Builder clearTimestamp() {
@@ -4317,7 +4816,7 @@ public final class PelionProtos {
        * This is the endpoint_name from the device.
        * </pre>
        *
-       * <code>string original_ep = 8;</code>
+       * <code>string original_ep = 12;</code>
        * @return The originalEp.
        */
       public java.lang.String getOriginalEp() {
@@ -4337,7 +4836,7 @@ public final class PelionProtos {
        * This is the endpoint_name from the device.
        * </pre>
        *
-       * <code>string original_ep = 8;</code>
+       * <code>string original_ep = 12;</code>
        * @return The bytes for originalEp.
        */
       public com.google.protobuf.ByteString
@@ -4358,7 +4857,7 @@ public final class PelionProtos {
        * This is the endpoint_name from the device.
        * </pre>
        *
-       * <code>string original_ep = 8;</code>
+       * <code>string original_ep = 12;</code>
        * @param value The originalEp to set.
        * @return This builder for chaining.
        */
@@ -4377,7 +4876,7 @@ public final class PelionProtos {
        * This is the endpoint_name from the device.
        * </pre>
        *
-       * <code>string original_ep = 8;</code>
+       * <code>string original_ep = 12;</code>
        * @return This builder for chaining.
        */
       public Builder clearOriginalEp() {
@@ -4391,7 +4890,7 @@ public final class PelionProtos {
        * This is the endpoint_name from the device.
        * </pre>
        *
-       * <code>string original_ep = 8;</code>
+       * <code>string original_ep = 12;</code>
        * @param value The bytes for originalEp to set.
        * @return This builder for chaining.
        */
@@ -9241,27 +9740,29 @@ public final class PelionProtos {
       "Body.Method\022\013\n\003uri\030\002 \001(\t\022\016\n\006accept\030\003 \001(\t" +
       "\022\024\n\014content_type\030\004 \001(\t\022\023\n\013payload_b64\030\005 " +
       "\001(\t\"0\n\006Method\022\007\n\003GET\020\000\022\007\n\003PUT\020\001\022\010\n\004POST\020" +
-      "\002\022\n\n\006DELETE\020\003\"\217\001\n\020NotificationData\022\n\n\002ep" +
-      "\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\n\n\002ct\030\003 \001(\t\022\017\n\007payl" +
-      "oad\030\004 \001(\t\022\017\n\007max_age\030\005 \001(\005\022\013\n\003uid\030\006 \001(\t\022" +
-      "\021\n\ttimestamp\030\007 \001(\003\022\023\n\013original_ep\030\010 \001(\t\"" +
-      "M\n\014ResourceData\022\014\n\004path\030\001 \001(\t\022\n\n\002if\030\002 \001(" +
-      "\t\022\n\n\002rt\030\003 \001(\t\022\n\n\002ct\030\004 \001(\t\022\013\n\003obs\030\005 \001(\010\"\202" +
-      "\001\n\014EndpointData\022\n\n\002ep\030\001 \001(\t\022\023\n\013original_" +
-      "ep\030\002 \001(\t\022\013\n\003ept\030\003 \001(\t\022\t\n\001q\030\004 \001(\010\022&\n\010reso" +
-      "urce\030\005 \003(\0132\024.pelion.ResourceData\022\021\n\ttime" +
-      "stamp\030\006 \001(\003\"\241\003\n\017AsyncIDResponse\022\n\n\002id\030\001 " +
-      "\001(\t\022.\n\006status\030\002 \001(\0162\036.pelion.AsyncIDResp" +
-      "onse.Status\022\r\n\005error\030\003 \001(\t\022\017\n\007payload\030\004 " +
-      "\001(\t\022\n\n\002ct\030\005 \001(\t\022\017\n\007max_age\030\006 \001(\005\"\224\002\n\006Sta" +
-      "tus\022\010\n\004NOOP\020\000\022\014\n\007SUCCESS\020\310\001\022\025\n\020REQUEST_R" +
-      "EJECTED\020\220\003\022\027\n\022RESOURCE_NOT_FOUND\020\224\003\022\030\n\023P" +
-      "RECONDITION_FAILED\020\234\003\022\025\n\020ENTITY_TOO_LARG" +
-      "E\020\235\003\022\035\n\030NOT_SUPPORTED_MEDIA_TYPE\020\237\003\022\032\n\025R" +
-      "EQUEST_NOT_DELIVERED\020\255\003\022\035\n\030DEVICE_UNABLE" +
-      "_TO_CONNECT\020\366\003\022\031\n\024DEVICE_NOT_CONNECTED\020\367" +
-      "\003\022\034\n\027DEVICE_RESPONSE_TIMEOUT\020\370\003B#\n\023com.p" +
-      "elion.protobufB\014PelionProtosb\006proto3"
+      "\002\022\n\n\006DELETE\020\003\"\322\001\n\020NotificationData\022\n\n\002ep" +
+      "\030\001 \001(\t\022\014\n\004path\030\002 \001(\t\022\n\n\002ct\030\003 \001(\t\022\023\n\013payl" +
+      "oad_b64\030\004 \001(\t\022\013\n\001s\030\005 \001(\tH\000\022\013\n\001l\030\006 \001(\003H\000\022" +
+      "\013\n\001d\030\007 \001(\001H\000\022\013\n\001b\030\010 \001(\010H\000\022\017\n\007max_age\030\t \001" +
+      "(\005\022\013\n\003uid\030\n \001(\t\022\021\n\ttimestamp\030\013 \001(\003\022\023\n\013or" +
+      "iginal_ep\030\014 \001(\tB\t\n\007payload\"M\n\014ResourceDa" +
+      "ta\022\014\n\004path\030\001 \001(\t\022\n\n\002if\030\002 \001(\t\022\n\n\002rt\030\003 \001(\t" +
+      "\022\n\n\002ct\030\004 \001(\t\022\013\n\003obs\030\005 \001(\010\"\202\001\n\014EndpointDa" +
+      "ta\022\n\n\002ep\030\001 \001(\t\022\023\n\013original_ep\030\002 \001(\t\022\013\n\003e" +
+      "pt\030\003 \001(\t\022\t\n\001q\030\004 \001(\010\022&\n\010resource\030\005 \003(\0132\024." +
+      "pelion.ResourceData\022\021\n\ttimestamp\030\006 \001(\003\"\241" +
+      "\003\n\017AsyncIDResponse\022\n\n\002id\030\001 \001(\t\022.\n\006status" +
+      "\030\002 \001(\0162\036.pelion.AsyncIDResponse.Status\022\r" +
+      "\n\005error\030\003 \001(\t\022\017\n\007payload\030\004 \001(\t\022\n\n\002ct\030\005 \001" +
+      "(\t\022\017\n\007max_age\030\006 \001(\005\"\224\002\n\006Status\022\010\n\004NOOP\020\000" +
+      "\022\014\n\007SUCCESS\020\310\001\022\025\n\020REQUEST_REJECTED\020\220\003\022\027\n" +
+      "\022RESOURCE_NOT_FOUND\020\224\003\022\030\n\023PRECONDITION_F" +
+      "AILED\020\234\003\022\025\n\020ENTITY_TOO_LARGE\020\235\003\022\035\n\030NOT_S" +
+      "UPPORTED_MEDIA_TYPE\020\237\003\022\032\n\025REQUEST_NOT_DE" +
+      "LIVERED\020\255\003\022\035\n\030DEVICE_UNABLE_TO_CONNECT\020\366" +
+      "\003\022\031\n\024DEVICE_NOT_CONNECTED\020\367\003\022\034\n\027DEVICE_R" +
+      "ESPONSE_TIMEOUT\020\370\003B#\n\023com.pelion.protobu" +
+      "fB\014PelionProtosb\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -9284,7 +9785,7 @@ public final class PelionProtos {
     internal_static_pelion_NotificationData_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_pelion_NotificationData_descriptor,
-        new java.lang.String[] { "Ep", "Path", "Ct", "Payload", "MaxAge", "Uid", "Timestamp", "OriginalEp", });
+        new java.lang.String[] { "Ep", "Path", "Ct", "PayloadB64", "S", "L", "D", "B", "MaxAge", "Uid", "Timestamp", "OriginalEp", "Payload", });
     internal_static_pelion_ResourceData_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_pelion_ResourceData_fieldAccessorTable = new

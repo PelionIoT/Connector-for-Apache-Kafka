@@ -16,7 +16,6 @@
 
 package com.pelion.connect.dm.source;
 
-import com.pelion.connect.dm.source.PelionSourceConnectorConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,6 +37,7 @@ public class PelionSourceConnectorConfigTest {
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
     props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "sub1, sub2");
+    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
   }
 
   @Test
