@@ -88,11 +88,11 @@ public class PelionSourceTask extends SourceTask {
     this.config = new PelionSourceTaskConfig(props);
     // the kafka topics where we store records
     // follows the schema: {TOPIC_PREFIX}-{notifications|registrations|async-responses}
-    this.ndTopic = String.format("%s-notifications",
+    this.ndTopic = String.format("%s.notifications",
         props.get(PelionSourceConnectorConfig.TOPIC_PREFIX));
-    this.edTopic = String.format("%s-registrations",
+    this.edTopic = String.format("%s.registrations",
         props.get(PelionSourceConnectorConfig.TOPIC_PREFIX));
-    this.arTopic = String.format("%s-async-responses",
+    this.arTopic = String.format("%s.responses",
         props.get(PelionSourceConnectorConfig.TOPIC_PREFIX));
     // whether this task should publish registrations events
     this.shouldPublishRegistrations = config.getBoolean(PelionSourceTaskConfig.PELION_TASK_PUBLISH_REGISTRATIONS);
