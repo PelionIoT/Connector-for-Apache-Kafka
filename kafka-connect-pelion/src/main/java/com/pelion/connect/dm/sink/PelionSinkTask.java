@@ -72,6 +72,8 @@ public class PelionSinkTask extends SinkTask {
     this.pelionAPI = pelionAPI != null ? pelionAPI :
         new PelionAPI(config.getString(PelionSinkConnectorConfig.PELION_API_HOST_CONFIG),
             config.getPassword(PelionSinkConnectorConfig.PELION_ACCESS_KEY_CONFIG).value());
+
+    LOG.info("[{}] Started Pelion sink task", Thread.currentThread().getName());
   }
 
   @Override
@@ -94,7 +96,8 @@ public class PelionSinkTask extends SinkTask {
 
         if (rfe.exception() instanceof IOException) {
           if (retries == maxRetries) {
-            throw new ConnectException(String.format("exceeded the maximum number of retries (%d)", maxRetries), rfe);
+            throw new ConnectException(String.format("[%s] exceeded the maximum number of retries (%d)",
+                Thread.currentThread().getName(), maxRetries), rfe);
           }
 
           retries++;
@@ -112,7 +115,7 @@ public class PelionSinkTask extends SinkTask {
 
   @Override
   public void stop() {
-    LOG.info("Stopping PelionSinkTask");
+    LOG.info("[{}] Stopping Pelion sink task", Thread.currentThread().getName());
   }
 
   public int getRetries() {
