@@ -82,7 +82,6 @@ public class PelionSourceTaskTest {
         "         \"timestamp\":1614180568514," +
         "         \"original-ep\":\"0176c7561cf3000000000001001122d4\"\n" +
         "      }\n" +
-
         "   ]\n" +
         "}";
     queue.add(notifMsg);
