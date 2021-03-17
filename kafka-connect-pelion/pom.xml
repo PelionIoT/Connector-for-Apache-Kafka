@@ -14,18 +14,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.pelion</groupId>
         <artifactId>kafka-connect-pelion-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>kafka-connect-pelion</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>kafka-connect-pelion</name>
     <url>https://pelion.com</url>
     <description>
@@ -51,12 +51,12 @@
         <connection>scm:git:git://github.com/PelionIoT/kafka-connect-pelion.git</connection>
         <developerConnection>scm:git:git@github.com:PelionIoT/kafka-connect-pelion.git</developerConnection>
         <url>https://github.com/PelionIoT/kafka-connect-pelion</url>
-        <tag>kafka-connect-pelion-parent-1.0.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <properties>
         <kafka.version>2.7.0</kafka.version>
-        <pelion-protobuf-schema.version>1.0.0</pelion-protobuf-schema.version>
+        <pelion-protobuf-schema.version>1.0.1-SNAPSHOT</pelion-protobuf-schema.version>
         <confluent.version>6.1.0</confluent.version>
         <jackson-databind.version>2.10.5</jackson-databind.version>
         <slf4j.version>1.7.30</slf4j.version>
