@@ -1,0 +1,20 @@
+{
+  "name": "sink-s3",
+  "config": {
+    "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
+    "value.converter.schema.registry.url": "http://schema-registry:8081",
+    "tasks.max": "1",
+    "topics": "mypelion.notifications",
+    "s3.region": "eu-west-2",
+    "s3.bucket.name": "mypelion.notifications",
+    "flush.size": "10",
+    "storage.class": "io.confluent.connect.s3.storage.S3Storage",
+    "format.class": "io.confluent.connect.s3.format.parquet.ParquetFormat",
+    "schema.generator.class": "io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator",
+    "schema.compatibility": "NONE",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.FieldPartitioner",
+    "partition.field.name": "ep"
+  }
+}
