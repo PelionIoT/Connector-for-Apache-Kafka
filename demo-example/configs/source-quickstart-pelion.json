@@ -8,13 +8,9 @@
     "value.converter.schema.registry.url": "http://schema-registry:8081",
     "pelion.access.key.list": "<PELION_ACCESS_KEY>",
     "topic.prefix": "mypelion",
-    "subscriptions": "presub1, presub2, presub3, presub4, presub5",
-    "subscriptions.presub1.endpoint-name": "01767982c9250000000000010011579e",
+    "subscriptions": "presub1",
+    "subscriptions.presub1.endpoint-name": "<DEVICE_ID>",
     "subscriptions.presub1.resource-path": "/3200/0/5501, /3201/0/5853",
-    "subscriptions.presub2.endpoint-name": "01781c8fd514000000000001001a4d61",
-    "subscriptions.presub3.endpoint-type": "Sensor",
-    "subscriptions.presub4.resource-path": "/dev/temp, /dev/hum",
-    "subscriptions.presub5.endpoint-name": "0176c7561cf3000000000001001122d4",
     "resource.type.mapping": "1:i, 5501:i, 21:i, 5853:s"
   }
 }
