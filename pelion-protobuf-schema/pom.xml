@@ -14,21 +14,18 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>com.pelion</groupId>
         <artifactId>kafka-connect-pelion-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>pelion-protobuf-schema</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>pelion-protobuf-schema</name>
     <url>https://pelion.com</url>
     <description>
@@ -54,7 +51,7 @@
         <connection>scm:git:git://github.com/PelionIoT/pelion-protobuf-schema.git</connection>
         <developerConnection>scm:git:git@github.com:PelionIoT/pelion-protobuf-schema.git</developerConnection>
         <url>https://github.com/PelionIoT/pelion-protobuf-schema</url>
-        <tag>HEAD</tag>
+        <tag>kafka-connect-pelion-parent-1.0.0</tag>
     </scm>
 
     <properties>
