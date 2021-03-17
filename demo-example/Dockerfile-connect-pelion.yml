@@ -1,6 +1,6 @@
 FROM confluentinc/cp-kafka-connect-base:6.1.0
 
-ENV KAFKA_CONNECT_PELION_VERSION 1.0.0-SNAPSHOT
+ENV KAFKA_CONNECT_PELION_VERSION 1.0.0
 
 # add some sample connectors
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:11.0.3 \
@@ -8,8 +8,6 @@ RUN confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:1
   && confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.2.2
 
 # install kafka-connect-pelion connector
-# once repo is public remove gdrive link
-#RUN curl -k -SL https://github.com/PelionIoT/kafka-connect-pelion/releases/download/${KAFKA_CONNECT_PELION_VERSION}/pelion-kafka-connect-pelion-${KAFKA_CONNECT_PELION_VERSION}.zip -o /tmp/kafka-connect-pelion.zip \
-RUN curl -k -SL "https://drive.google.com/uc?export=download&id=1Lqe-5W5Ard2xB-aGjblpmHAVa8A_r4VF" -o /tmp/kafka-connect-pelion.zip \
+RUN curl -k -SL https://github.com/PelionIoT/kafka-connect-pelion/releases/download/${KAFKA_CONNECT_PELION_VERSION}/pelion-kafka-connect-pelion-${KAFKA_CONNECT_PELION_VERSION}.zip -o /tmp/kafka-connect-pelion.zip \
   && confluent-hub install --no-prompt /tmp/kafka-connect-pelion.zip \
   && rm /tmp/kafka-connect-pelion.zip
