@@ -8,6 +8,11 @@ them to Apache Kafka. The Sink Connector reads messages from a Kafka topic (devi
 and forwards them to Pelion IoT for processing. When used in tandem, the two connectors allow communicating with
 IoT devices by simply posting and reading messages to/from Kafka topics. Together with the extensive support of a number of connectors already available for external system that integrate with Apache Kafka (see [Confluent Hub](https://www.confluent.io/hub/)), the Pelion connector can be used to easily integrate in a scalable and standardized way with all those systems.
 
+Please have a look at our [demo-example guide](./demo-example/README.md) to quickly get started by bootstrapping a local development Kafka cluster
+using Docker and installing both the Pelion connector as well as Elastic and Amazon S3 connectors to forward Pelion IoT messages to those stores.
+If you don't own [Pelion Ready](https://developer.pelion.com/boards/) hardware yet, you can still testbed the platform by using our [Pelion Virtual Demo](https://github.com/PelionIoT/virtual-demo-for-pelion/)
+to spin-off a simulated device able to connect to Pelion IoT platform.
+
 ## Installation
 Download the ZIP file and extract it into one of the directories that is listed on the Connect worker's `plugin.path` configuration properties.
 This must be done on each of the installations where Connect will be run. For more information, refer to Confluent [documentation page](https://docs.confluent.io/home/connect/userguide.html#connect-installing-plugins) for installing Connector plugins.
