@@ -17,7 +17,7 @@ In order to follow this tutorial, you'll need:
 
 - An account to [Pelion IoT platform](https://pelion.com/). A [free-tier access](https://os.mbed.com/pelion-free-tier/) is provided which is suffice for this tutorial. Once signed in, a [Pelion Access Key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html) is required to be created.
 
-- A working [Docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/) installation. 
+- A working [Docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/) installation. If you are on a Mac or Windows, please increase the memory size allocated to Docker, 6Gb should be enough.
 - Either a [Pelion Ready](https://developer.pelion.com/boards/) device or our [Virtual-Demo](https://github.com/PelionIoT/virtual-demo-for-pelion) application, successfully connected to the platform. For more information about the Virtual-Demo, please check our [blog post](https://pelion.com/blog/education/try-pelion-without-any-hardware-virtual-demo/).
 
 
