@@ -16,10 +16,9 @@ platform to Kafka.
 In order to follow this tutorial, you'll need:
 
 - An account to [Pelion IoT platform](https://pelion.com/). A [free-tier access](https://os.mbed.com/pelion-free-tier/) is provided which is suffice for this tutorial. Once signed in, a [Pelion Access Key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html) is required to be created.
-
 - A working [Docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/) installation. If you are on a Mac or Windows, please increase the memory size allocated to Docker, 6Gb should be enough.
 - Either a [Pelion Ready](https://developer.pelion.com/boards/) device or our [Virtual-Demo](https://github.com/PelionIoT/virtual-demo-for-pelion) application, successfully connected to the platform. For more information about the Virtual-Demo, please check our [blog post](https://pelion.com/blog/education/try-pelion-without-any-hardware-virtual-demo/).
-
+- [curl](https://curl.se/) and [jq](https://stedolan.github.io/jq/) tools.
 
 ## Step 1 - Bootstrap a development Kafka and Elastic installation
 
@@ -94,6 +93,9 @@ In order to follow this tutorial, you'll need:
   ```
   If successfully, you should see the configuration printed out in the console and the connector starting receiving messages from Pelion:
 
+  > NOTE: As described in our [pre-subscriptions documentation page](https://developer.pelion.com/docs/device-management/current/resources/resource-change-webapp.html#presubscribing-to-resources-based-on-rules), Pelion 
+  > Device Management does not deploy pre-subscription changes to the device immediately. Instead, when the device update it's registration status to the platform, then the rules are forwarded. For that reason, please ensure
+  > you reboot the device or in case of the Virtual demo, a simple `docker stop/start` on the virtual demo container should suffice. Once your device reboots and registers again to the platform, you should start receiving messages.
 - Start a kafka consumer to verify that messages are being received:
   ```
   $ kafka-protobuf-console-consumer \
@@ -168,7 +170,7 @@ In order to follow this tutorial, you'll need:
   ```
   The connector is configured to consume messages from the `mypelion.notifications` and `mypelion.registrations` topics and forward all messages to Elastic
 
-  If you open [Elastic console](http://localhost:5601) and after configuring the necessary index patterns you should see the messages flowing in:
+  If you open [Elastic console](http://localhost:5601) and after [configuring](https://www.elastic.co/guide/en/kibana/current/index-patterns.html) the necessary index patterns you should see the messages flowing in:
 
   ![Elastic](https://i.ibb.co/kcZx75m/elastic.png "Elastic")
 
