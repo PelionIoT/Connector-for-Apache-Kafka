@@ -124,7 +124,7 @@ In order to follow this tutorial, you'll need:
   ```
   kafka-protobuf-console-producer --broker-list localhost:9092 \
      --property schema.registry.url=http://localhost:8081 --topic mypelion.requests \
-     --property value.schema='syntax = "proto3"; message DeviceRequest {string ep = 1; string async_id = 2; int32 retry = 3; int64 expiry_seconds = 4; message Body {enum Method {GET = 0; PUT = 1; POST = 2; DELETE = 3;} Method method = 1; string uri = 2; string accept = 3; string content_type = 4; string payload_b64 = 5;} Body body = 5;}'
+     --property value.schema.file=./configs/device-request-schema.proto
   ```
   
   Once started, enter the following request. Replace the `<device_id>` with your own device id:
