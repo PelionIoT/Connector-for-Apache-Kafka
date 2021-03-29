@@ -1,6 +1,6 @@
 # kafka-connect-pelion
 
-![Kafka Connect Pelion](https://i.ibb.co/fGvw8Gf/kafka-connect-pelion-diagram.png "Kafka Connect Pelion")
+![Kafka Connect Pelion](https://i.ibb.co/0rJ72Bq/kafka-connect-pelion-featured-image-github.jpg "Kafka Connect Pelion")
 
 Kafka Connect Pelion is a [Kafka Connector](http://kafka.apache.org/documentation.html#connect) plugin which includes both  a Source and a Sink connector. The Source connector
 is used to consume data from Pelion IoT platform (device registrations, observations and responses) and store
@@ -31,7 +31,7 @@ The table below outlines information about each configuration setting:
 | tasks.max | Int | Yes | 1 | The number of tasks this connector will start. |
 | key.converter | String | Yes | org.apache..StringConverter | The key converter to use when storing messages. |
 | value.converter | String | Yes | io.confluent..ProtobufConverter | The value converter to use when storing messages. |
-| pelion.api.host | String | No | api.us-east-1.mbedcloud.com | The Pelion API host. Not required unless you use an on-premise instance. | 
+| pelion.api.host | String | No | api.us-east-1.mbedcloud.com | The Pelion API host. Not required unless you use an on-premise instance. |
 | pelion.access.key.list | List | Yes | None | A list of [Pelion Access Keys](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html). The list should match the number of tasks configured since each task would be assigned an access key from the list. _NOTE: Each Access Key should belong to a different Pelion Application group._ |
 | topic.prefix | String | Yes | None | The prefix to use when constructing the topic names to store Pelion messages. We follow the schema: `$topic.prefix.`{notifications,registrations,responses} |
 | resource.type.mapping | List | No | Empty | A list of resource id's and their respective data types.The form should be <resource_id>:{s:string, i:integer, d:double: b:bool}. If not defined, payload would be processed as a string. |
@@ -102,7 +102,7 @@ The table below outlines information about each configuration setting:
    kafka-protobuf-console-producer --broker-list localhost:9092 \
    --property schema.registry.url=http://localhost:8081 --topic ${topic}.requests \
    --property value.schema='syntax = "proto3"; message DeviceRequest {string ep = 1; string async_id = 2; int32 retry = 3; int64 expiry_seconds = 4; message Body {enum Method {GET = 0; PUT = 1; POST = 2; DELETE = 3;} Method method = 1; string uri = 2; string accept = 3; string content_type = 4; string payload_b64 = 5; string payload  = 5;} Body body = 5;}'
-   
+
    {"ep": "01767982c9250000000000010011579e", "async_id":"my_async_id", "body": {"method": "GET", "uri": "/3200/0/5501"}}
    ```
 
