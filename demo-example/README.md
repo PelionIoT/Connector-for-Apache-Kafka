@@ -60,16 +60,16 @@ In order to follow this tutorial, you'll need:
 - If you want to use [Pelion Virtual-Demo](https://pelion.com/blog/education/try-pelion-without-any-hardware-virtual-demo/) as a simulated device in case you don't
   own real hardware, you can bootstrap it now. Replace `YOUR_PELION_API_KEY` with your own key:
   ```
-  docker run --name pelion-demo -p 8888:8888 -e CLOUD_SDK_API_KEY=<YOUR_PELION_API_KEY> -e SENSOR=counter pelion/virtual-demo
+  docker run --name pelion-demo -p 8888:8888 -e SENSOR=counter -e CLOUD_SDK_API_KEY=<YOUR_PELION_API_KEY> pelion/virtual-demo
   ```
   
   Open the [virtual demo page](http://localhost:8888/) in a new browser tab:
 
-  ![Pelion Virtual Demo](https://i.ibb.co/swycytj/pelion-virtual-demo.png "Pelion Virtual Demo")
+  ![Pelion Virtual Demo](https://i.ibb.co/5TXDv6n/pelion-virtual-demo.png "Pelion Virtual Demo")
   
 - Login to [Pelion Pelion portal](https://portal.mbedcloud.com) and make note of the connected Device ID:
   
-  ![Pelion Portal](https://i.ibb.co/wzbfz1b/portal-device-id.png "Pelion Portal")
+  ![Pelion Portal](https://i.ibb.co/0XTJYzS/portal-device-id.png "Pelion Portal")
 
 
 ## Step 2 - Adjust Connector Configurations:
@@ -200,7 +200,7 @@ docker logs -f connect
 
   If you open [Elastic console](http://localhost:5601) and after [configuring the necessary index patterns](https://www.elastic.co/guide/en/kibana/current/index-patterns.html) you should see the messages flowing in:
 
-  ![Elastic](https://i.ibb.co/kcZx75m/elastic.png "Elastic")
+  ![Elastic](https://i.ibb.co/4P3cy07/elastic.png "Elastic")
 
 
 ## Step 5 - (Optional) Deploy Amazon S3 connector configuration
@@ -221,7 +221,7 @@ docker logs -f connect
     
   > Check Confluent's [Amazon S3 Sink Connector](https://docs.confluent.io/kafka-connect-s3-sink/current/index.html) configuration for more information regarding configuration parameters:
 
-  ![Amazon S3](https://i.ibb.co/7j4Bhvf/amazon-s3.png "Amazon S3")
+  ![Amazon S3](https://i.ibb.co/nwqntG1/amazon-s3.png "Amazon S3")
 
 ## Step 6 - Streaming Analytics with [ksqldb](https://ksqldb.io)
 
@@ -323,5 +323,5 @@ docker logs -f connect
 - Generate again alert messages by continuously clicking the button on the device (or in the virtual demo) and if everything is configured correctly,
   alert messages should appear in Slack!
 
-  ![Slack](https://i.ibb.co/41HFLRp/slack.png "Slack")
+  ![Slack](https://i.ibb.co/xM0stt0/slack.png "Slack")
   
