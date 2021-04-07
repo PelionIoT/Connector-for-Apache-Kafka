@@ -365,7 +365,6 @@ public class PelionAPI {
 
     String path = null;
     int statusCode = 0;
-    JsonNode body = null;
 
     try {
       path = String.format("v2/device-requests/%s?async-id=%s",
@@ -383,14 +382,15 @@ public class PelionAPI {
       final HttpResponse<String> response = post(path, jsonObj);
 
       // parse response
-      body = mapper.readTree(response.body());
       statusCode = response.statusCode();
-      if (statusCode != HttpStatus.ACCEPTED.code) {
-        return new RequestFailedException(statusCode, path, jsonAsString(jsonObj), jsonAsString(body), null,
-            "response code differs from expected 202(Accepted)");
+      if (statusCode != HttpStatus.ACCEPTED.code /* http-202 */) {
+        return new RequestFailedException(statusCode, path,
+            jsonAsString(jsonObj), response.body(), null,
+            "response code differs from expected 202-Accepted");
       }
     } catch (IOException | InterruptedException e) {
-      return new RequestFailedException(statusCode, path, jsonObj.toString(), "", e, e.getMessage());
+      return new RequestFailedException(statusCode, path,
+          jsonObj.toString(), "", e, e.getMessage());
     }
 
     return null;

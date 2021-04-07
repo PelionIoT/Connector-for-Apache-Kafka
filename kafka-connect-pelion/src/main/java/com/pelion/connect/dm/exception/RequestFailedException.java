@@ -36,7 +36,7 @@ public class RequestFailedException extends ConnectException {
 
   public RequestFailedException(Integer statusCode, String path, String request,
                                 String body, Exception exception, String message) {
-    super(String.format("HTTP response code:%d, path:%s, request:%s, body:%s, exception:%s , message:%s",
+    super(String.format("HTTP response code:%d, path:%s, request:%s, body:%s, exception:%s, message:%s",
         statusCode,
         path,
         request,

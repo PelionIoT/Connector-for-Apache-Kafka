@@ -84,6 +84,7 @@ The table below outlines information about each configuration setting:
 | pelion.access.key | String | Yes | None | The [Pelion Access Key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html) to invoke device management requests |
 | max.retries| Int | No | 10 | The maximum number of times to retry on errors before failing the task. |
 | retry.backoff.ms| Int | No | 3000 | The time in milliseconds to wait following an error before a retry attempt is made. |
+| ignore.errors| Boolean | No | True | Whether the sink connector should ignore device requests response errors and continue processing (default true). |
 
 #### Example Sending a request
 

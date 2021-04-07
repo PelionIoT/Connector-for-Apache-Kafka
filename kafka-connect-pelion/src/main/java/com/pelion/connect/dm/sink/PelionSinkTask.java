@@ -43,9 +43,10 @@ public class PelionSinkTask extends SinkTask {
   private PelionSinkTaskConfig config;
   private PelionAPI pelionAPI;
 
-  private int retries = 0;
+  private int retries;
   private int maxRetries;
   private int retryBackoffMs;
+  private boolean ignoreErrors;
 
   private static final ProtobufData protobufData = new ProtobufData();
 
@@ -67,6 +68,7 @@ public class PelionSinkTask extends SinkTask {
     this.config = new PelionSinkTaskConfig(props);
     maxRetries = config.getInt(PelionSinkTaskConfig.MAX_RETRIES);
     retryBackoffMs = config.getInt(PelionSinkTaskConfig.RETRY_BACKOFF_MS);
+    ignoreErrors = config.getBoolean(PelionSinkTaskConfig.IGNORE_ERRORS);
 
     // initialize api engine
     this.pelionAPI = pelionAPI != null ? pelionAPI :
@@ -88,13 +90,17 @@ public class PelionSinkTask extends SinkTask {
         Thread.currentThread().getName(), recordsCount, first.topic(), first.kafkaPartition(), first.kafkaOffset());
 
     records.stream().map(this::asDeviceRequest).forEach(request -> {
-      while (true) {
+      while (true) { // loop to allow retries
         RequestFailedException rfe = pelionAPI.executeDeviceRequest(request);
         if (rfe == null) {
           break;
         }
 
+        // process failed request
+
+        // for I/O errors (eg. unable to connect) backoff and retry
         if (rfe.exception() instanceof IOException) {
+          // throw error if no more retries left
           if (retries == maxRetries) {
             throw new ConnectException(String.format("[%s] exceeded the maximum number of retries (%d)",
                 Thread.currentThread().getName(), maxRetries), rfe);
@@ -105,8 +111,15 @@ public class PelionSinkTask extends SinkTask {
           LOG.debug("[{}] backing off after failing to execute device request (reason: {}), sleeping for {} ms, retries {}",
               Thread.currentThread().getName(), rfe.getMessage(), millis, retries);
           sleep(millis);
-        } else { // unrecoverable err
-          throw new ConnectException(rfe);
+
+        } else { // Pelion replied with error status
+          LOG.debug("[{}] request with async-id '{}' throw an error: {}",
+              Thread.currentThread().getName(), request.getAsyncId(), rfe.getMessage());
+          if (!this.ignoreErrors) { // should we stop ?
+            throw new ConnectException(rfe);
+          } else {
+            break; // continue processing
+          }
         }
       }
       retries = maxRetries;

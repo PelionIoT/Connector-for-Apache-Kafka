@@ -52,12 +52,7 @@ public class PelionSinkTaskTest {
 
   @Before
   public void setup() {
-    Map<String, String> props = new HashMap<>();
-    props.put(PelionSinkConnectorConfig.PELION_API_HOST_CONFIG, "api.us-east-1.mbedcloud.com");
-    props.put(PelionSinkTaskConfig.PELION_ACCESS_KEY_CONFIG, "key1");
-    props.put(PelionSinkTaskConfig.MAX_RETRIES, "2");
-    props.put(PelionSinkTaskConfig.RETRY_BACKOFF_MS, "100");
-
+    Map<String, String> props = getDefaultProps();
     task = new PelionSinkTask();
     task.start(props, pelionAPI);
   }
@@ -107,7 +102,7 @@ public class PelionSinkTaskTest {
   }
 
   @Test(expected = ConnectException.class)
-  public void shouldFailAfterFailingToExecuteDeviceRequest() {
+  public void shouldFailAfterFailingToExecuteDeviceRequestIfIgnoreErrorsIsFalse() {
     DeviceRequest request = buildDeviceRequest();
     SchemaAndValue schemaAndValue = protobufData
         .toConnectData(PROTOBUF_REQ_SCHEMA, request);
@@ -130,6 +125,35 @@ public class PelionSinkTaskTest {
     assertEquals(task.getRetries(), 2);
   }
 
+  @Test
+  public void shouldContinueAfterFailingToExecuteDeviceRequestIfIgnoreErrorsIsTrue() {
+    Map<String, String> props = getDefaultProps();
+    props.put(PelionSinkTaskConfig.IGNORE_ERRORS, "true");
+
+    task = new PelionSinkTask();
+    task.start(props, pelionAPI);
+
+    DeviceRequest request = buildDeviceRequest();
+    SchemaAndValue schemaAndValue = protobufData
+        .toConnectData(PROTOBUF_REQ_SCHEMA, request);
+
+    SinkRecord record = new SinkRecord(
+        TOPIC,
+        1,
+        Schema.STRING_SCHEMA,
+        "id",
+        schemaAndValue.schema(),
+        schemaAndValue.value(),
+        0);
+
+    // mock a failure request
+    RequestFailedException rfe = new RequestFailedException(400, "path", "request", "RESOURCE_NOT_FOUND", null, "");
+    when(pelionAPI.executeDeviceRequest(request)).thenReturn(rfe);
+
+    task.put(Collections.singletonList(record));
+    verify(pelionAPI).executeDeviceRequest(request);
+  }
+
   private DeviceRequest buildDeviceRequest() {
     DeviceRequest.Builder request = DeviceRequest.newBuilder();
 
@@ -141,5 +165,16 @@ public class PelionSinkTaskTest {
     request.setBody(body.build());
 
     return request.build();
+  }
+
+  private Map<String, String> getDefaultProps() {
+    Map<String, String> props = new HashMap<>();
+    props.put(PelionSinkConnectorConfig.PELION_API_HOST_CONFIG, "api.us-east-1.mbedcloud.com");
+    props.put(PelionSinkTaskConfig.PELION_ACCESS_KEY_CONFIG, "key1");
+    props.put(PelionSinkTaskConfig.MAX_RETRIES, "2");
+    props.put(PelionSinkTaskConfig.RETRY_BACKOFF_MS, "100");
+    props.put(PelionSinkTaskConfig.IGNORE_ERRORS, "false");
+
+    return props;
   }
 }

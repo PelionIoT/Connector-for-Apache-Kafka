@@ -39,8 +39,10 @@ public class PelionSinkConnectorConfig extends AbstractConfig {
   public static final String RETRY_BACKOFF_MS = "retry.backoff.ms";
   public static final int RETRY_BACKOFF_MS_DEFAULT = Math.toIntExact(TimeUnit.SECONDS
       .toMillis(3L));
-
   private static final String RETRY_BACKOFF_MS_DOC = "The time in milliseconds to wait following an error before a retry attempt is made.";
+
+  public static final String IGNORE_ERRORS = "ignore.errors";
+  private static final String IGNORE_ERRORS_DOC = "Whether the sink connector should ignore device requests response errors and continue processing (default true).";
 
   public PelionSinkConnectorConfig(final Map<?, ?> originals) {
     this(config(), originals);
@@ -59,6 +61,8 @@ public class PelionSinkConnectorConfig extends AbstractConfig {
         .define(MAX_RETRIES, ConfigDef.Type.INT, 10, ConfigDef.Range.atLeast(1),
             ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
         .define(RETRY_BACKOFF_MS, ConfigDef.Type.INT, RETRY_BACKOFF_MS_DEFAULT, ConfigDef.Range.atLeast(1),
-            ConfigDef.Importance.MEDIUM, RETRY_BACKOFF_MS_DOC);
+            ConfigDef.Importance.MEDIUM, RETRY_BACKOFF_MS_DOC)
+        .define(IGNORE_ERRORS, ConfigDef.Type.BOOLEAN, true,
+            ConfigDef.Importance.MEDIUM, IGNORE_ERRORS_DOC);
   }
 }
