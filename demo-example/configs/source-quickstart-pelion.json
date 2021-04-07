@@ -10,7 +10,7 @@
     "topic.prefix": "mypelion",
     "subscriptions": "presub1",
     "subscriptions.presub1.endpoint-name": "<DEVICE_ID>",
-    "subscriptions.presub1.resource-path": "/3200/0/5501, /3201/0/5853",
-    "resource.type.mapping": "1:i, 5501:i, 21:i, 5853:s"
+    "subscriptions.presub1.resource-path": "/3200/0/5501, /3201/0/5853, /3313/0/5700",
+    "resource.type.mapping": "1:i, 5501:i, 21:i, 5853:s, 5700:i"
   }
 }
