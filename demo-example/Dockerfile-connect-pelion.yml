@@ -1,4 +1,4 @@
-FROM confluentinc/cp-kafka-connect-base:6.1.0
+FROM confluentinc/cp-kafka-connect-base:6.1.1
 
 ENV KAFKA_CONNECT_PELION_VERSION 1.0.1
 
