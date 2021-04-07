@@ -186,10 +186,16 @@
                         <configuration>
                             <title>Kafka Connect Pelion</title>
                             <documentationUrl>
-                                https://docs.confluent.io/${project.version}/connect/connect-pelion/docs/index.html
+                                https://github.com/PelionIoT/kafka-connect-pelion/blob/master/README.md
                             </documentationUrl>
                             <description>
-                                A Kafka Connect connector for connecting to Pelion IoT platform.
+                                Kafka Connect Pelion is a connector plugin for Pelion IoT platform which includes both a Source and a Sink.
+
+                                The Source connector is used to consume data from Pelion IoT platform (device registrations, observations and request responses) using Pelion's notification channel mechanism and subsequent store them to configurable topics in Kafka.
+
+                                The Sink Connector reads messages from a Kafka topic (device management requests) and forwards them to Pelion IoT for processing.
+
+                                When used in tandem, the two connectors allow communicating with IoT devices by simply posting and reading messages to/from Kafka topics. Together with the extensive support of a number of connectors already available for external systems that integrate with Kafka, the Pelion connector can be used to easily integrate in a scalable and standardized way with all those systems.
                             </description>
                             <logo>logos/pelion.png</logo>
 
