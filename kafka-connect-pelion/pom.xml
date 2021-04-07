@@ -57,10 +57,9 @@
     <properties>
         <kafka.version>2.7.0</kafka.version>
         <pelion-protobuf-schema.version>1.0.1-SNAPSHOT</pelion-protobuf-schema.version>
-        <confluent.version>6.1.0</confluent.version>
-        <jackson-databind.version>2.10.5</jackson-databind.version>
+        <confluent.version>6.1.1</confluent.version>
+        <jackson-databind.version>2.10.5.1</jackson-databind.version>
         <slf4j.version>1.7.30</slf4j.version>
-        <confluent-log4j.version>1.2.17-cp2</confluent-log4j.version>
         <kafka.connect.maven.plugin.version>0.12.0</kafka.connect.maven.plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
@@ -530,7 +529,7 @@
         <repository>
             <id>confluent</id>
             <name>Confluent</name>
-            <url>http://packages.confluent.io/maven/</url>
+            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
 

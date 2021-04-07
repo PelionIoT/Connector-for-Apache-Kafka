@@ -58,7 +58,7 @@
         <licenses.name>The Apache License, Version 2.0</licenses.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.package.home>target/${project.artifactId}-${project.version}-package</project.package.home>
-        <protobuf-java.version>3.14.0</protobuf-java.version>
+        <protobuf-java.version>3.11.4</protobuf-java.version>
         <maven.protoc-jar.plugin.version>3.11.4</maven.protoc-jar.plugin.version>
         <maven.compiler.plugin.version>3.8.1</maven.compiler.plugin.version>
         <maven.release.plugin.version>2.5.3</maven.release.plugin.version>
