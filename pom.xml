@@ -58,6 +58,7 @@
         <licenses.name>The Apache License, Version 2.0</licenses.name>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <java.version>11</java.version>
     </properties>
 
@@ -75,6 +76,16 @@
                             <arg>-Werror</arg>
                         </compilerArgs>
                         <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>${maven-release-plugin.version}</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <localCheckout>true</localCheckout>
+                        <goals>install</goals>
                     </configuration>
                 </plugin>
             </plugins>
