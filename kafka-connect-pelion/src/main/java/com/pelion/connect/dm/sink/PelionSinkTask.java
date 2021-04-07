@@ -122,7 +122,7 @@ public class PelionSinkTask extends SinkTask {
           }
         }
       }
-      retries = maxRetries;
+      retries = 0; // reset counter
     });
   }
 
