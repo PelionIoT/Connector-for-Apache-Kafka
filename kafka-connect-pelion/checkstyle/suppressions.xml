@@ -7,6 +7,7 @@
 <suppressions>
     <!-- relax line-length checks for configuration -->
     <suppress checks="LineLength" files="PelionSourceConnectorConfig.java|PelionSourceTaskConfig.java|PelionSinkConnectorConfig.java|PelionSinkTaskConfig.java"/>
+    <suppress checks="BooleanExpressionComplexity" files="PelionSourceTask.java"/>
     <suppress checks="EmptyLineSeparator" files="PelionConnectorUtils.java"/>
     <suppress checks="Header" files="kafka-connect-pelion-version.properties"/>
     <suppress checks="Header" files="log4j.properties"/>

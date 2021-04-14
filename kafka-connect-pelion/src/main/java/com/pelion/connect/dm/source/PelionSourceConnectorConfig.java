@@ -22,6 +22,7 @@ import org.apache.kafka.common.config.ConfigDef;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class PelionSourceConnectorConfig extends AbstractConfig {
 
@@ -44,6 +45,14 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
   private static final String RESOURCE_TYPE_MAPPING_DOC = "A list of resource id's and their respective data types. "
       + "The form should be <resource_id>:{s:string, i:integer, d:double: b:bool}. If not defined, payload would be processed as a string.";
 
+  public static final String MAX_RETRIES = "max.retries";
+  private static final String MAX_RETRIES_DOC = "The maximum number of times to retry to connect to notification channel before failing the task.";
+
+  public static final String RETRY_BACKOFF_MS = "retry.backoff.ms";
+  public static final int RETRY_BACKOFF_MS_DEFAULT = Math.toIntExact(TimeUnit.SECONDS
+      .toMillis(60L));
+  private static final String RETRY_BACKOFF_MS_DOC = "The time in milliseconds to wait following a notification channel close before a retry attempt is made.";
+
   public PelionSourceConnectorConfig(final Map<?, ?> originals) {
     this(config(), originals);
   }
@@ -65,6 +74,11 @@ public class PelionSourceConnectorConfig extends AbstractConfig {
             SUBSCRIPTIONS_GROUP, -1,
             ConfigDef.Width.NONE, SUBSCRIPTIONS_CONFIG)
         .define(RESOURCE_TYPE_MAPPING_CONFIG, ConfigDef.Type.LIST, Collections.<String>emptyList(),
-            ConfigDef.Importance.MEDIUM, RESOURCE_TYPE_MAPPING_DOC);
+            ConfigDef.Importance.MEDIUM, RESOURCE_TYPE_MAPPING_DOC)
+        .define(MAX_RETRIES, ConfigDef.Type.INT, 10, ConfigDef.Range.atLeast(1),
+            ConfigDef.Importance.MEDIUM, MAX_RETRIES_DOC)
+        .define(RETRY_BACKOFF_MS, ConfigDef.Type.INT, RETRY_BACKOFF_MS_DEFAULT, ConfigDef.Range.atLeast(1),
+            ConfigDef.Importance.MEDIUM, RETRY_BACKOFF_MS_DOC);
+
   }
 }

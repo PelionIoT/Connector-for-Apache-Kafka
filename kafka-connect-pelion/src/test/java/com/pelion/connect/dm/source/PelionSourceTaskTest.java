@@ -18,18 +18,26 @@ package com.pelion.connect.dm.source;
 
 import com.pelion.connect.dm.utils.PelionAPI;
 import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.http.WebSocket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PelionSourceTaskTest {
 
@@ -37,25 +45,21 @@ public class PelionSourceTaskTest {
 
   private final BlockingQueue<String> queue = new LinkedBlockingQueue<>();
 
-  @Before
-  public void setup() {
-    Map<String, String> props = new HashMap<>();
-    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
-    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
-    props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
-    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
-    props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
-    props.put("subscriptions.presub1.resource-path", "/3200/0/5501, /3201/0/5853");
-    props.put("subscriptions.presub2.endpoint-type", "Light");
-    props.put("subscriptions.presub2.resource-path", "sen/*");
-    props.put("subscriptions.presub3.endpoint-type", "Sensor");
-    props.put("subscriptions.presub4.resource-path", "/dev/temp, /dev/hum");
-    props.put("subscriptions.presub5.endpoint-name", "0176c7561cf3000000000001001122d4");
-    // enable registration publishing for this task
-    props.put("publish_registrations", "true");
+  // mock Pelion API
+  private final PelionAPI mockAPI = mock(PelionAPI.class);
+  private final WebSocket mockWebSocket = mock(WebSocket.class);
 
+  private PelionSourceTask.WebSocketListener listener = new PelionSourceTask.WebSocketListener(queue);
+
+  @Before
+  public void setup() throws InterruptedException, ExecutionException {
+    Map<String, String> props = getDefaultProps();
     task = new PelionSourceTask();
-    task.start(props, mock(PelionAPI.class), queue);
+
+    // mock Websocket to not allow retries to kick
+    when(mockAPI.connectNotificationChannel(any())).thenReturn(mockWebSocket);
+
+    task.start(props, mockAPI, listener, queue, 1);
   }
 
   @Test
@@ -233,5 +237,95 @@ public class PelionSourceTaskTest {
     assertEquals("600", obj.get("payload"));
     assertEquals("text/plain", obj.get("ct"));
     assertEquals("0", obj.get("max-age"));
+  }
+
+  @Test
+  public void shouldBackoffAndFailAfterFailingToConnectWebsocketDuringSetupCauseOfError() throws Exception {
+    Map<String, String> props = getDefaultProps();
+    task = new PelionSourceTask();
+
+    // mock Pelion API
+    PelionAPI mockAPI = mock(PelionAPI.class);
+    // throw IOException to signal error when connecting notif. channel
+    doThrow(new ExecutionException(new IOException())).when(mockAPI).connectNotificationChannel(any());
+    // start task should throw exception cause unable to connect after backing off and retrying
+    assertThrows(ConnectException.class, () -> {
+      task.start(props, mockAPI, listener, queue, 1);
+    });
+    // retries should have reached :2
+    assertEquals(2, task.getRetries());
+  }
+
+  @Test
+  public void shouldBackoffAndFailAfterFailingToConnectWebsocketMidFlightCauseOfError() throws Exception {
+    final String notifMsg = "{\n" +
+        "   \"notifications\":[\n" +
+        "      {\n" +
+        "         \"ep\":\"01767982c9250000000000010011579e\",\n" +
+        "         \"path\":\"/3200/0/5501\",\n" +
+        "         \"ct\":\"text/plain\",\n" +
+        "         \"payload\":\"NDA2\",\n" +
+        "         \"max-age\":0,\n" +
+        "         \"uid\":\"0d8e08c3-2311-4ede-aa53-fdaff2b3fad3\",\n" +
+        "         \"timestamp\":1614180566644,\n" +
+        "         \"original-ep\":\"01767982c9250000000000010011579e\"\n" +
+        "      },\n" +
+        "      {\n" +
+        "         \"ep\":\"0176c7561cf3000000000001001122d4\",\n" +
+        "         \"path\":\"/3201/0/5853\",\n" +
+        "         \"ct\":\"text/plain\",\n" +
+        "         \"payload\":\"MTAwOjEwMDoxMDA6MTAwOjEwMDoxMDA=\",\n" +
+        "         \"max-age\":0,\n" +
+        "         \"uid\":\"0f2e03b5-1455-3nce-ba53-adacd4c2waf1\",\n" +
+        "         \"timestamp\":1614180568514," +
+        "         \"original-ep\":\"0176c7561cf3000000000001001122d4\"\n" +
+        "      }\n" +
+        "   ]\n" +
+        "}";
+    queue.add(notifMsg);
+
+    List<SourceRecord> records;
+    // should retrieve records first time
+    records = task.poll();
+    assertEquals(2, records.size());
+
+    // simulate websocket closing cause of error
+    when(mockWebSocket.isInputClosed()).thenReturn(true);
+
+    // try to get records
+    // poll should throw exception
+    assertThrows(ConnectException.class, () -> {
+      // simulate successive polls
+      for (int i = 0; i < 3; i++) {
+        // continue failing
+        listener.lastCloseReason = "Connection reset by peer";
+        listener.lastStatusCode = -1;
+        task.poll(); // backoff
+      }
+    });
+
+    // retries should have reached 0
+    assertEquals(2, task.getRetries());
+  }
+
+  private Map<String, String> getDefaultProps() {
+    Map<String, String> props = new HashMap<>();
+    props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
+    props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
+    props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
+    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
+    props.put(PelionSourceConnectorConfig.MAX_RETRIES, "2");
+    props.put(PelionSourceConnectorConfig.RETRY_BACKOFF_MS, "100");
+    props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
+    props.put("subscriptions.presub1.resource-path", "/3200/0/5501, /3201/0/5853");
+    props.put("subscriptions.presub2.endpoint-type", "Light");
+    props.put("subscriptions.presub2.resource-path", "sen/*");
+    props.put("subscriptions.presub3.endpoint-type", "Sensor");
+    props.put("subscriptions.presub4.resource-path", "/dev/temp, /dev/hum");
+    props.put("subscriptions.presub5.endpoint-name", "0176c7561cf3000000000001001122d4");
+    // enable registration publishing for this task
+    props.put("publish_registrations", "true");
+
+    return props;
   }
 }

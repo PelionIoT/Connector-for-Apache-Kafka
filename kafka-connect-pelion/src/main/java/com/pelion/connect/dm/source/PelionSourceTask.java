@@ -17,13 +17,11 @@
 package com.pelion.connect.dm.source;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pelion.connect.dm.utils.PelionAPI;
 import com.pelion.protobuf.PelionProtos.AsyncIDResponse;
 import com.pelion.protobuf.PelionProtos.EndpointData;
 import com.pelion.protobuf.PelionProtos.NotificationData;
 import com.pelion.protobuf.PelionProtos.ResourceData;
-import io.confluent.connect.protobuf.ProtobufData;
 import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.data.SchemaBuilder;
@@ -35,12 +33,17 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.http.WebSocket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.BOOLEAN;
@@ -48,6 +51,8 @@ import static com.pelion.connect.dm.utils.PelionConnectorUtils.DOUBLE;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.INTEGER;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.base64Decode;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.getVersion;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.mapper;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.protobufData;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.readFile;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.sleep;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.uniqueIndex;
@@ -56,12 +61,7 @@ public class PelionSourceTask extends SourceTask {
 
   private static final Logger LOG = LoggerFactory.getLogger(PelionSourceTask.class);
 
-  private PelionSourceTaskConfig config;
-
   private BlockingQueue<String> queue;
-
-  private static final ObjectMapper mapper = new ObjectMapper();
-  private static final ProtobufData protobufData = new ProtobufData();
 
   private PelionAPI pelionAPI;
 
@@ -69,12 +69,17 @@ public class PelionSourceTask extends SourceTask {
   private String edTopic;
   private String arTopic;
 
+  private int retries;
+  private int maxRetries;
+  private int retryBackoffMs;
+
   private boolean shouldPublishRegistrations;
 
   private Map<String, List<String>> types;
 
-  private WebSocket websocket;
-  private PelionSourceTask.WebSocketListener wsListener;
+  private PelionNotificationChannelHandler pelionChannel;
+
+  private int pollTimeout;
 
   @Override
   public String version() {
@@ -82,17 +87,17 @@ public class PelionSourceTask extends SourceTask {
   }
 
   public void start(Map<String, String> props) {
-    start(props, null, null);
+    start(props, null, null, null, 10);
   }
 
   // visible for testing
-  public void start(Map<String, String> props, PelionAPI api, BlockingQueue<String> q) {
+  public void start(Map<String, String> props, PelionAPI api, WebSocketListener listener, BlockingQueue<String> q, int timeout) {
     LOG.info(readFile("pelion-source-ascii.txt"));
 
     // initialize config
-    this.config = new PelionSourceTaskConfig(props);
+    final PelionSourceTaskConfig config = new PelionSourceTaskConfig(props);
     // the kafka topics where we store records
-    // follows the schema: {TOPIC_PREFIX}-{notifications|registrations|async-responses}
+    // follows the schema: {TOPIC_PREFIX}-{notifications|registrations|responses}
     this.ndTopic = String.format("%s.notifications",
         props.get(PelionSourceConnectorConfig.TOPIC_PREFIX));
     this.edTopic = String.format("%s.registrations",
@@ -103,28 +108,36 @@ public class PelionSourceTask extends SourceTask {
     this.shouldPublishRegistrations = config.getBoolean(PelionSourceTaskConfig.PELION_TASK_PUBLISH_REGISTRATIONS);
     // configured type mappings
     this.types = uniqueIndex(config.getList(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG));
-
+    // retry mechanism
+    this.maxRetries = config.getInt(PelionSourceConnectorConfig.MAX_RETRIES);
+    this.retryBackoffMs = config.getInt(PelionSourceConnectorConfig.RETRY_BACKOFF_MS);
+    // the queue that holds incoming messages
     this.queue = q != null ? q : new LinkedBlockingQueue<>();
-    this.pelionAPI = api != null ? api :
+    // the pelion notification channel handler
+    this.pelionChannel = (listener == null ? new PelionNotificationChannelHandler() /* default */ :
+        new PelionNotificationChannelHandler((listener))); /* for testing */
+    this.pollTimeout = timeout;
+    // the API engine
+    this.pelionAPI = (api != null ? api :
         new PelionAPI(config.getString(PelionSourceConnectorConfig.PELION_API_HOST_CONFIG),
-            config.getPassword(PelionSourceTaskConfig.PELION_TASK_ACCESS_KEY_CONFIG).value());
+            config.getPassword(PelionSourceTaskConfig.PELION_TASK_ACCESS_KEY_CONFIG).value()));
 
     // setup pre-subscriptions
     pelionAPI.createPreSubscriptions(config);
-    // connect websocket channel
-    connectWebSocketChannel();
-
+    // connect to Pelion notification channel
+    pelionChannel.connect();
+    // ready
     LOG.info("[{}] Started Pelion source task", Thread.currentThread().getName());
   }
 
   @Override
   public List<SourceRecord> poll() throws InterruptedException {
-    // check whether reconnection is required
-    checkIfReconnectWsNeeded();
+    // check whether ws channel was closed unexpectedly and reconnection is required
+    pelionChannel.checkIfReconnectionIsNeeded();
 
     // now block until message is received or timeout on poll occurs. We
     // need to return regularly (with null) to allow task transitions (e.g PAUSE)
-    final String message = queue.poll(10, TimeUnit.SECONDS);
+    final String message = queue.poll(pollTimeout, TimeUnit.SECONDS);
     // no message received yet, return
     if (message == null) {
       return null;
@@ -149,7 +162,7 @@ public class PelionSourceTask extends SourceTask {
       return records;
 
     } catch (IOException e) {
-      closeResources();
+      pelionChannel.releaseResources();
       throw new ConnectException(e);
     }
   }
@@ -157,7 +170,7 @@ public class PelionSourceTask extends SourceTask {
   @Override
   public void stop() {
     LOG.info("[{}] Stopping Pelion source task", Thread.currentThread().getName());
-    closeResources();
+    pelionChannel.releaseResources();
   }
 
   private void processNotificationData(List<SourceRecord> records, JsonNode jsonData) {
@@ -207,11 +220,13 @@ public class PelionSourceTask extends SourceTask {
 
   private void processEndpointData(List<SourceRecord> records, JsonNode jsonData) {
     if (!shouldPublishRegistrations) {
-      LOG.debug("[{}] skipping registration incoming message [shouldPublishRegistration=false]", Thread.currentThread().getName());
+      LOG.debug("[{}] skipping registration incoming message [shouldPublishRegistration=false]",
+          Thread.currentThread().getName());
       return;
     }
 
     for (final JsonNode jsonNode : jsonData) {
+      // build protobuf obj from json
       EndpointData.Builder endpoint = EndpointData.newBuilder();
 
       endpoint.setEp(jsonNode.get("ep").asText());
@@ -287,46 +302,9 @@ public class PelionSourceTask extends SourceTask {
     return types.containsKey(type) && types.get(type).contains(value);
   }
 
-  private void closeResources() {
-    if (websocket != null) {
-      websocket.sendClose(WebSocket.NORMAL_CLOSURE, "closing");
-    }
-  }
-
-  private void checkIfReconnectWsNeeded() {
-    if (websocket != null && websocket.isInputClosed()) {
-      LOG.info("[{}] Websocket closed! code:'{}', reason:'{}'", Thread.currentThread().getName(),
-          wsListener.wsSocketStatus, wsListener.wsCloseReason);
-      if (canReconnect()) {
-        LOG.info("[{}] Sleeping and attempting to reconnect..", Thread.currentThread().getName());
-        sleep(1000 * 60); // wait 1min prior reconnecting
-        connectWebSocketChannel();
-      } else {
-        throw new ConnectException(String.format("Websocket terminated! unable to auto-reconnect due to received "
-            + "socket status, code:'%d', reason:'%s'", wsListener.wsSocketStatus, wsListener.wsCloseReason));
-      }
-    }
-  }
-
-  private void connectWebSocketChannel() {
-    wsListener = new PelionSourceTask.WebSocketListener();
-    websocket = pelionAPI.connectNotificationChannel(wsListener);
-  }
-
-  private boolean canReconnect() {
-    // onClose()
-    if (wsListener.wsSocketStatus == 1006 /* Abnormal closure */
-        || wsListener.wsSocketStatus == 1012 /* Service restart */
-        || wsListener.wsSocketStatus == 1011 /* Unexpected condition. */) {
-      return true;
-    }
-    // onError()
-    if (wsListener.error != null
-        && wsListener.error.getMessage().equals("Operation timed out")) {
-      return true;
-    }
-
-    return false;
+  // visible for testing
+  public int getRetries() {
+    return retries;
   }
 
   static class Schemas {
@@ -344,13 +322,130 @@ public class PelionSourceTask extends SourceTask {
         AsyncIDResponse.getDescriptor());
   }
 
-  class WebSocketListener implements WebSocket.Listener {
+  class PelionNotificationChannelHandler {
 
-    int wsSocketStatus;
-    String wsCloseReason;
-    Throwable error;
+    WebSocket websocket;
+    WebSocketListener listener;
+
+    ScheduledThreadPoolExecutor executorService;
+    ScheduledFuture<?> keepAliveThread;
+
+    final ByteBuffer pingMsg = ByteBuffer.wrap("ping".getBytes());
+
+    PelionNotificationChannelHandler() {
+      this(new WebSocketListener(PelionSourceTask.this.queue));
+    }
+
+    // visible for testing
+    PelionNotificationChannelHandler(WebSocketListener listener) {
+      this.listener = listener;
+      this.executorService = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
+      // remove on cancel
+      executorService.setRemoveOnCancelPolicy(true);
+    }
+
+    void connect() {
+      try {
+        // attempt to connect (sync call)
+        websocket = pelionAPI.connectNotificationChannel(listener);
+        // start ws ping keepalive to catch silent termination
+        startKeepAlive();
+      } catch (ExecutionException e) {
+        backOffAndConnect();
+      } catch (InterruptedException e) {
+        throw new ConnectException(e);
+      }
+    }
+
+    void backOffAndConnect() {
+      // reached retry limit ?
+      if (retries == maxRetries) {
+        throw new ConnectException(String.format("[%s] exceeded the maximum number of retries (%d) to connect notification channel",
+            Thread.currentThread().getName(), maxRetries));
+      }
+
+      // otherwise backoff and attempt to reconnect
+      retries++;
+      int millis = retries * retryBackoffMs;
+      LOG.info("[{}] backing off after failing to connect notification channel, sleeping for {} ms, retries {}",
+          Thread.currentThread().getName(), millis, retries);
+      sleep(millis);
+
+      // attempt to connect
+      connect();
+    }
+
+    void checkIfReconnectionIsNeeded() {
+      if (websocket != null) {
+        if (websocket.isInputClosed()) { // notification channel closed abnormally ?
+          LOG.info("[{}] notification channel closed abnormally, code:'{}', reason:'{}'", Thread.currentThread().getName(),
+              listener.lastStatusCode, listener.lastCloseReason);
+          // can we reconnect ?
+          if (isReconnectPossible()) {
+            releaseResources();
+            backOffAndConnect();
+          } else {
+            throw new ConnectException(String.format("[%s] notification channel returned unrecoverable status, unable "
+                    + "to auto-reconnect, code:'%d', reason:'%s'", Thread.currentThread().getName(),
+                listener.lastStatusCode, listener.lastCloseReason));
+          }
+        } else { // up and running..
+          retries = 0;  // reset retries flag (if any)
+        }
+      }
+    }
+
+    boolean isReconnectPossible() {
+      // extract error code returned from Pelion to determine if reconnect is possible
+      // refer to Pelion API '/v2/notification/websocket-connect' response codes
+      return listener.lastStatusCode == -1      /* Silent termination */
+          || listener.lastStatusCode == 1000    /* Normal closure */
+          || listener.lastStatusCode == 1006    /* Abnormal closure */
+          || listener.lastStatusCode == 1011    /* Unexpected condition */
+          || listener.lastStatusCode == 1012;   /* Service restart */
+    }
+
+    void startKeepAlive() {
+      // setup ping keepalive so that silent ws termination can be handled accordingly
+      keepAliveThread = executorService.scheduleAtFixedRate(() -> {
+        // if the channel is still open, send ping
+        if (!websocket.isOutputClosed()) {
+          LOG.debug("[{}] sending keepalive ping", Thread.currentThread().getName());
+          websocket.sendPing(pingMsg)
+              .exceptionally(ex -> {
+                LOG.debug("[{}] sending keepalive ping error '{}'", Thread.currentThread().getName(), ex.getMessage());
+                releaseResources();
+                return null;
+              });
+        }
+      }, 10, 10, TimeUnit.SECONDS);
+    }
+
+    void releaseResources() {
+      // close keepalive
+      if (keepAliveThread != null) {
+        keepAliveThread.cancel(false);
+      }
+      // close websocket
+      if (websocket != null && !websocket.isOutputClosed()) {
+        websocket.sendClose(WebSocket.NORMAL_CLOSURE, "closing");
+      }
+      // clear listener last status
+      listener.clearErrors();
+    }
+  }
+
+  static class WebSocketListener implements WebSocket.Listener {
+    BlockingQueue<String> queue;
+
+    int lastStatusCode;
+    String lastCloseReason;
 
     StringBuilder text = new StringBuilder();
+
+    public WebSocketListener(BlockingQueue<String> queue) {
+      this.queue = queue;
+    }
 
     @Override
     public void onOpen(WebSocket webSocket) {
@@ -364,23 +459,29 @@ public class PelionSourceTask extends SourceTask {
       if (last) {
         queue.add(text.toString());
         LOG.debug("[{}] {}", Thread.currentThread().getName(), text);
-        text = new StringBuilder();
+        text.setLength(0); // clear buffer
       }
       return WebSocket.Listener.super.onText(webSocket, data, last);
     }
 
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-      LOG.debug("[{}] WebSocket onClose(), Code:{}", Thread.currentThread().getName(), statusCode);
-      wsSocketStatus = statusCode;
-      wsCloseReason = reason;
+      LOG.debug("[{}] WebSocket onClose(), code:{}, reason:{}", Thread.currentThread().getName(), statusCode, reason);
+      lastStatusCode = statusCode; // should contain Pelion error response code
+      lastCloseReason = reason;
       return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
     }
 
     @Override
-    public void onError(WebSocket webSocket, Throwable err) {
-      LOG.debug("[{}] WebSocket onError(), Error: {}", Thread.currentThread().getName(), error);
-      error = err;
+    public void onError(WebSocket webSocket, Throwable error) {
+      LOG.debug("[{}] WebSocket onError(), Error: {}", Thread.currentThread().getName(), error.getMessage());
+      lastStatusCode = -1; // flag for any other errors
+      lastCloseReason = error.getMessage();
+    }
+
+    public void clearErrors() {
+      lastStatusCode = 0;
+      lastCloseReason = null;
     }
   }
 }

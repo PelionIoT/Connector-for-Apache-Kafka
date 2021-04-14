@@ -49,6 +49,8 @@ public class PelionAPI {
   private final String baseURL;
   private final String bearer;
 
+  private boolean wsChannelCreated;
+
   // default base API host
   public static final String DEFAULT_PELION_API_HOST = "api.us-east-1.mbedcloud.com";
   // default group that all tasks would be bound to
@@ -318,8 +320,8 @@ public class PelionAPI {
     }
   }
 
-  public WebSocket connectNotificationChannel(WebSocket.Listener listener) {
-    // first we need to setup a new ws notification channel
+  public void setupNotificationChannel() {
+    // setup ws notification channel using the bearer auth token assigned to this task
     try {
       final ObjectNode jsonObj = mapper.createObjectNode();
       jsonObj.putObject("serialization")
@@ -339,19 +341,26 @@ public class PelionAPI {
       if (statusCode == HttpStatus.CREATED.code
           || statusCode == HttpStatus.SUCCESS.code) {
         LOG.debug("created websocket channel");
+        // flag so that 'connectNotificationChannel()' doesn't need to call again
+        wsChannelCreated = true;
       } else {
         throw new RuntimeException(String.format("failed to create web socket channel, got response: status:%d body:%s", statusCode, body));
       }
-
-      // ready to connect
-      String wssURI = String.format("wss://%s/v2/notification/websocket-connect", this.baseURL);
-      return HttpClient.newBuilder().build().newWebSocketBuilder()
-          .subprotocols("wss", String.format("pelion_%s", this.bearer))
-          .buildAsync((URI.create(wssURI)), listener).get();
-
-    } catch (IOException | InterruptedException | ExecutionException e) {
+    } catch (IOException | InterruptedException e) {
       throw new RuntimeException("an error has occurred during creation of websocket channel", e);
     }
+  }
+
+  public WebSocket connectNotificationChannel(WebSocket.Listener listener) throws InterruptedException, ExecutionException {
+    // if the ws channel hasn't been created yet, we need to setup first
+    if (!wsChannelCreated) {
+      setupNotificationChannel();
+    }
+
+    String wssURI = String.format("wss://%s/v2/notification/websocket-connect", this.baseURL);
+    return HttpClient.newBuilder().build().newWebSocketBuilder()
+        .subprotocols("wss", String.format("pelion_%s", this.bearer))
+        .buildAsync((URI.create(wssURI)), listener).get();
   }
 
   public RequestFailedException executeDeviceRequest(final DeviceRequest request) {
