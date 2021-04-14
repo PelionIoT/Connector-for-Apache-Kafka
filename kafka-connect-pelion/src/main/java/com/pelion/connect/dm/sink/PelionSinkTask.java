@@ -21,7 +21,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.pelion.connect.dm.exception.RequestFailedException;
 import com.pelion.connect.dm.utils.PelionAPI;
 import com.pelion.protobuf.PelionProtos.DeviceRequest;
-import io.confluent.connect.protobuf.ProtobufData;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
@@ -33,6 +32,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.getVersion;
+import static com.pelion.connect.dm.utils.PelionConnectorUtils.protobufData;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.readFile;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.sleep;
 
@@ -47,8 +47,6 @@ public class PelionSinkTask extends SinkTask {
   private int maxRetries;
   private int retryBackoffMs;
   private boolean ignoreErrors;
-
-  private static final ProtobufData protobufData = new ProtobufData();
 
   @Override
   public String version() {
