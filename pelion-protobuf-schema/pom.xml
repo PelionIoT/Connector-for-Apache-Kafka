@@ -21,11 +21,11 @@
     <parent>
         <groupId>com.pelion</groupId>
         <artifactId>kafka-connect-pelion-parent</artifactId>
-        <version>1.0.1-SNAPSHOT</version>
+        <version>1.0.1</version>
     </parent>
     <artifactId>pelion-protobuf-schema</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.1</version>
     <name>pelion-protobuf-schema</name>
     <url>https://pelion.com</url>
     <description>
@@ -51,7 +51,7 @@
         <connection>scm:git:git://github.com/PelionIoT/pelion-protobuf-schema.git</connection>
         <developerConnection>scm:git:git@github.com:PelionIoT/pelion-protobuf-schema.git</developerConnection>
         <url>https://github.com/PelionIoT/pelion-protobuf-schema</url>
-        <tag>HEAD</tag>
+        <tag>kafka-connect-pelion-parent-1.0.1</tag>
     </scm>
 
     <properties>
