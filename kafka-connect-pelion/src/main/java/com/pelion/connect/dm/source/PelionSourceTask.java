@@ -231,8 +231,8 @@ public class PelionSourceTask extends SourceTask {
 
       endpoint.setEp(jsonNode.get("ep").asText());
       endpoint.setOriginalEp(jsonNode.get("original-ep").asText());
-      endpoint.setEpt(jsonNode.get("ept").asText());
       // note: we use 'path()' instead of 'get()' for optional fields
+      endpoint.setEpt(jsonNode.path("ept").asText());
       endpoint.setQ(jsonNode.path("q").asBoolean());
       endpoint.setTimestamp(jsonNode.get("timestamp").asLong());
 
