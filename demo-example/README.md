@@ -111,7 +111,7 @@ docker logs -f connect
 
   ***Device Registrations:***
   ```
-  $ docker exec -it connect kafka-protobuf-console-consumer \
+  $ docker exec -it connect kafka-avro-console-consumer \
    --bootstrap-server broker:29092 \
    --property schema.registry.url=http://schema-registry:8081 \
    --topic mypelion.registrations
@@ -120,7 +120,7 @@ docker logs -f connect
 
   ***Device Observations:***
   ```
-  $ docker exec -it connect kafka-protobuf-console-consumer \
+  $ docker exec -it connect kafka-avro-console-consumer \
    --bootstrap-server broker:29092 \
    --property schema.registry.url=http://schema-registry:8081 \
    --topic mypelion.notifications
@@ -136,7 +136,7 @@ docker logs -f connect
 
 - Start a kafka consumer to listen for responses:
   ```
-  docker exec -it connect kafka-protobuf-console-consumer \
+  docker exec -it connect kafka-avro-console-consumer \
    --bootstrap-server broker:29092 \
    --property schema.registry.url=http://schema-registry:8081 \
    --topic mypelion.responses
@@ -144,25 +144,25 @@ docker logs -f connect
   
   Start a Kafka producer to post device request messages:
   ```
-  docker exec -it connect kafka-protobuf-console-producer --broker-list broker:29092 \
+  docker exec -it connect kafka-avro-console-producer --broker-list broker:29092 \
      --property schema.registry.url=http://schema-registry:8081 --topic mypelion.requests \
-     --property value.schema='syntax = "proto3"; message DeviceRequest {string ep = 1; string async_id = 2; int32 retry = 3; int64 expiry_seconds = 4; message Body {enum Method {GET = 0; PUT = 1; POST = 2; DELETE = 3;} Method method = 1; string uri = 2; string accept = 3; string content_type = 4; string payload_b64 = 5;} Body body = 5;}'
+     --property value.schema="$(cat ./configs/device-request-schema.avsc)"
   ```
   
-  Once started, enter the following request. Replace the `<device_id>` with your own device id:
+  Once started, enter the following request to retrieve the current value of the '/3200/0/5501' resource. Replace the `<device_id>` with your own device id:
   ```
-  {"ep": "<device_id>", "async_id":"my-req-id", "body": {"method": "GET", "uri": "/3200/0/5501"}}
+  {"ep":"<device_id>","async_id":"my-async-id-get","retry":null,"expiry_seconds":null,"body": {"method":"GET","uri":"/3200/0/5501","accept":null,"content_type":null,"payload_b64":null}}
   ```
 
   If successfully, you should see the following printed in the consumer console:
   ```
-  {"id":"my-req-id","status":"SUCCESS","error":"","payload":"1166","ct":"text/plain","maxAge":0}
-  ```
+  {"id":"my-async-id-get","status":200,"error":null,"payload":"300","ct":{"string":"text/plain"},"max_age":{"int":0}}
+    ```
   
   You can also try to blink the LED on the device by sending the following message:
 
   ```
-  {"ep": "<device_id>", "async_id":"my-req-id-post", "body": {"method": "POST", "uri": "/3201/0/5850"}}
+  {"ep":"<device_id>","async_id":"my-async-id-post","retry":null,"expiry_seconds":null,"body": {"method":"POST","uri":"/3201/0/5850","accept":null,"content_type":null,"payload_b64":null}}
   ```
 
 
@@ -259,25 +259,28 @@ docker logs -f connect
   ksql> CREATE STREAM "mypelion-notifications"
   WITH (
        KAFKA_TOPIC='mypelion.notifications',
-       VALUE_FORMAT='PROTOBUF'
+       VALUE_FORMAT='AVRO'
   );
   ```
 
 - If you query the stream now, real-time notifications from the device should start be printed out:   
   ```
   ksql> SELECT * FROM "mypelion-notifications" EMIT CHANGES;
-  +-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-  |PAYLOAD_0    |EP           |PATH         |CT           |PAYLOAD_B64  |MAX_AGE      |UID          |TIMESTAMP    |ORIGINAL_EP  |
-  +-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+-------------+
-  |{S=null, L=17|01785dde13250|/3200/0/5501 |text/plain   |MTc1OA==     |0            |cdd5efcf-d8f5|1616491713745|01785dde13250|
-  |58, D=null, B|0000000000100|             |             |             |             |-45fe-a476-cc|             |0000000000100|
-  |=null}       |1093f5       |             |             |             |             |220aa5eb7c   |             |1093f5       |
-  |{S=null, L=17|01785dde13250|/3200/0/5501 |text/plain   |MTc1OQ==     |0            |1b4676ff-a740|1616491718757|01785dde13250|
-  |59, D=null, B|0000000000100|             |             |             |             |-40c3-b0fa-2d|             |0000000000100|
-  |=null}       |1093f5       |             |             |             |             |732ec14e1c   |             |1093f5       |
-  |{S=null, L=17|01785dde13250|/3200/0/5501 |text/plain   |MTc2MA==     |0            |71e6b4ca-1009|1616491723764|01785dde13250|
-  |60, D=null, B|0000000000100|             |             |             |             |-4a34-a4fa-60|             |0000000000100|
-  |=null}       |1093f5       |             |             |             |             |e32dd811f0   |             |1093f5       |
+  +------------+------------+------------+------------+------------+------------+------------+------------+------------+
+  |EP          |PATH        |CT          |PAYLOAD_B64 |PAYLOAD     |MAX_AGE     |UID         |TIMESTAMP   |ORIGINAL_EP |
+  +------------+------------+------------+------------+------------+------------+------------+------------+------------+
+  |01795a4c18c6|/3200/0/5501|text/plain  |MTE2        |{S=null, L=1|0           |317068f4-a8d|162074241625|01795a4c18c6|
+  |000000000001|            |            |            |16, D=null, |            |b-459c-84fc-|1           |000000000001|
+  |0011c8c5    |            |            |            |B=null}     |            |58edc80d6d34|            |0011c8c5    |
+  |01795a4c18c6|/3200/0/5501|text/plain  |MTE3        |{S=null, L=1|0           |cda8b07b-372|162074242126|01795a4c18c6|
+  |000000000001|            |            |            |17, D=null, |            |3-446b-8bf7-|2           |000000000001|
+  |0011c8c5    |            |            |            |B=null}     |            |de2981683082|            |0011c8c5    |
+  |01795a4c18c6|/3200/0/5501|text/plain  |MTE4        |{S=null, L=1|0           |4c2e443f-da9|162074242627|01795a4c18c6|
+  |000000000001|            |            |            |18, D=null, |            |3-47fe-9bf5-|2           |000000000001|
+  |0011c8c5    |            |            |            |B=null}     |            |6e4bc9f53a31|            |0011c8c5    |
+  |01795a4c18c6|/3200/0/5501|text/plain  |MTE5        |{S=null, L=1|0           |859d0902-7f0|162074243128|01795a4c18c6|
+  |000000000001|            |            |            |19, D=null, |            |6-4bd1-be43-|0           |000000000001|
+  |0011c8c5    |            |            |            |B=null}     |            |fe6d071af03d|            |0011c8c5    |
   ```
 
 - Let's create a sample analytic job to count the notifications received from an endpoint and resource path over a window of 10 secs
@@ -286,7 +289,7 @@ docker logs -f connect
   ksql> CREATE TABLE alerts
         WITH (
         kafka_topic = 'alerts',
-        value_format = 'PROTOBUF'
+        value_format = 'AVRO'
         ) AS SELECT
         ep,path,
         AS_VALUE(ep) AS "endpoint",
@@ -298,15 +301,15 @@ docker logs -f connect
   ```
 - Start a consumer on the 'alerts' topic:
   ```
-  docker exec -it connect kafka-protobuf-console-consumer \
+  docker exec -it connect kafka-avro-console-consumer \
    --bootstrap-server broker:29092 \
    --property schema.registry.url=http://schema-registry:8081 \
    --topic alerts
   ```
 - Continue to click the button on the device (or in the virtual demo) and see alert messages being printed out:
   ```
-  {"endpoint":"01785dde1325000000000001001093f5","path":"/3200/0/5501","readings":"4"}
-  {"endpoint":"01785dde1325000000000001001093f5","path":"/3200/0/5501","readings":"6"}
+{"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":4}}
+{"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":5}}
   ```
   
 - As an exercise, you can deploy another connector to forward those `alert` messages to a Slack channel for instant notifications!

@@ -30,7 +30,7 @@ The table below outlines information about each configuration setting:
 |-------------|-------------|-------------|-------------|----------------|
 | tasks.max | Int | Yes | 1 | The number of tasks this connector will start. |
 | key.converter | String | Yes | org.apache..StringConverter | The key converter to use when storing messages. |
-| value.converter | String | Yes | io.confluent..ProtobufConverter | The value converter to use when storing messages. |
+| value.converter | String | Yes | io.confluent..AvroConverter | The value converter to use when storing messages. |
 | pelion.api.host | String | No | api.us-east-1.mbedcloud.com | The Pelion API host. Not required unless you use an on-premise instance. |
 | pelion.access.key.list | List | Yes | None | A list of [Pelion Access Keys](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html). The list should match the number of tasks configured since each task would be assigned an access key from the list. _NOTE: Each Access Key should belong to a different Pelion Application group._ |
 | topic.prefix | String | Yes | None | The prefix to use when constructing the topic names to store Pelion messages. We follow the schema: `$topic.prefix.`{notifications,registrations,responses} |
@@ -48,21 +48,21 @@ The table below outlines information about each configuration setting:
 #### Consuming Pelion messages
 
 ```
-kafka-protobuf-console-consumer \
+kafka-avro-console-consumer \
    --bootstrap-server localhost:9092 \
    --property schema.registry.url=http://localhost:8081 \
    --topic ${topic.prefix}.registrations
 ```
 
 ```
-kafka-protobuf-console-consumer \
+kafka-avro-console-consumer \
    --bootstrap-server localhost:9092 \
    --property schema.registry.url=http://localhost:8081 \
    --topic ${topic.prefix}.notifications
 ```
 
 ```
-kafka-protobuf-console-consumer \
+kafka-avro-console-consumer \
    --bootstrap-server localhost:9092 \
    --property schema.registry.url=http://localhost:8081 \
    --topic ${topic.prefix}.responses
@@ -80,7 +80,7 @@ The table below outlines information about each configuration setting:
 |-------------|-------------|-------------|-------------|----------------|
 | tasks.max | Int | Yes | 1 | The number of tasks this connector will start. If more that one, each task would be assigned the same Pelion access key to invoke device management requests. |
 | key.converter | String | Yes | org.apache..StringConverter | The key converter to use when storing messages. |
-| value.converter | String | Yes | io.confluent..ProtobufConverter | The value converter to use when storing messages. |
+| value.converter | String | Yes | io.confluent..AvroConverter | The value converter to use when storing messages. |
 | topics | List | Yes | None | A list of topics the connector listens for device management requests. |
 | pelion.api.host | String | No | api.us-east-1.mbedcloud.com | The Pelion API host. Not required unless you use an on-premise instance. |
 | pelion.access.key | String | Yes | None | The [Pelion Access Key](https://developer.pelion.com/docs/device-management/current/user-account/application-access-keys.html) to invoke device management requests |
@@ -93,47 +93,36 @@ The table below outlines information about each configuration setting:
 1. Startup a Kafka consumer to listen for responses from Pelion Device Management:
 
    ```
-   kafka-protobuf-console-consumer \
+   kafka-avro-console-consumer \
       --bootstrap-server localhost:9092 \
       --property schema.registry.url=http://localhost:8081 \
       --topic ${topic.prefix}.responses
    ```
 
-2. Startup a producer to send a request. The format should follow the request [protobuf schema](https://github.com/PelionIoT/kafka-connect-pelion/blob/master/pelion-protobuf-schema/src/main/protobuf/pelion.proto#L8-L57):
+2. Startup a producer to send a device request. The format should follow the request [avro schema](https://github.com/PelionIoT/kafka-connect-pelion/blob/master/demo-example/configs/device-request-schema.avsc):
 
    ```
-   kafka-protobuf-console-producer --broker-list localhost:9092 \
+   kafka-avro-console-producer --broker-list localhost:9092 \
    --property schema.registry.url=http://localhost:8081 --topic ${topic}.requests \
-   --property value.schema='syntax = "proto3"; message DeviceRequest {string ep = 1; string async_id = 2; int32 retry = 3; int64 expiry_seconds = 4; message Body {enum Method {GET = 0; PUT = 1; POST = 2; DELETE = 3;} Method method = 1; string uri = 2; string accept = 3; string content_type = 4; string payload_b64 = 5; string payload  = 5;} Body body = 5;}'
+   --property value.schema="$(cat ./demo-example/configs/device-request-schema.avsc)"
 
-   {"ep": "01767982c9250000000000010011579e", "async_id":"my_async_id", "body": {"method": "GET", "uri": "/3200/0/5501"}}
+   {"ep":"01795a4c18c60000000000010011c8c5","async_id":"my-async-id-get","retry":null,"expiry_seconds":null,"body": {"method":"GET","uri":"/3200/0/5501","accept":null,"content_type":null,"payload_b64":null}}
    ```
 
 3. After a bit you should receive the following message printed in the consumer console:
 
    ```
-   "id":"my_async_id","status":"SUCCESS","error":"","payload":"46","ct":"text/plain","maxAge":0}
+   {"id":"my-async-id-get","status":200,"error":null,"payload":"300","ct":{"string":"text/plain"},"max_age":{"int":0}}
    ```
 
 # Development
 
-## Repository Contents
-
-The repository contains the following sub-projects:
-
-* [pelion-protobuf-schema](https://github.com/PelionIoT/kafka-connect-pelion/tree/master/pelion-protobuf-schema)
-
-  The [protobuf](https://developers.google.com/protocol-buffers/) schema that describes the messages and stored in Kafka topics.
-
-* [kafka-connect-pelion](https://github.com/PelionIoT/kafka-connect-pelion/tree/master/kafka-connect-pelion)
-
-  The source code for the Source/Sink connector.
-
-## Building the source
+## Building the Connecto
 
 At the root of the project issue:
 
 ```bash
+cd kafka-connect-pelion
 mvn clean package
 ```
 
