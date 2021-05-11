@@ -17,7 +17,6 @@
 package com.pelion.connect.dm.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.confluent.connect.protobuf.ProtobufData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,6 @@ public class PelionConnectorUtils {
   public static final String STRING = "s";
 
   public static final ObjectMapper mapper = new ObjectMapper();
-  public static final ProtobufData protobufData = new ProtobufData();
 
   static {
     try (InputStream stream = PelionConnectorUtils.class.getResourceAsStream(PATH)) {

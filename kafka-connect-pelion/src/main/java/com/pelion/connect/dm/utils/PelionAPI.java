@@ -22,9 +22,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pelion.connect.dm.exception.RequestFailedException;
+import com.pelion.connect.dm.schemas.DeviceRequestData;
 import com.pelion.connect.dm.source.PelionSourceConnectorConfig;
 import com.pelion.connect.dm.source.PelionSourceTaskConfig;
-import com.pelion.protobuf.PelionProtos.DeviceRequest;
+import org.apache.kafka.connect.data.Struct;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,11 +104,11 @@ public class PelionAPI {
       if (statusCode == HttpStatus.SUCCESS.code) {
         accountId = body.get("id").asText();
       } else {
-        throw new RuntimeException(String.format("failed to get account-id for application, got response: status:%d body:%s",
+        throw new ConnectException(String.format("failed to get account-id for application, got response: status:%d body:%s",
             statusCode, body));
       }
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("an error has occurred during retrieving of account-id", e);
+      throw new ConnectException("an error has occurred during retrieving of account-id", e);
     }
 
     return accountId;
@@ -122,7 +124,7 @@ public class PelionAPI {
       final JsonNode body = mapper.readTree(response.body());
       final int statusCode = response.statusCode();
       if (statusCode != HttpStatus.SUCCESS.code) {
-        throw new RuntimeException(String.format("failed to retrieve group-id for account-id '%s', got response: status:%d body:%s",
+        throw new ConnectException(String.format("failed to retrieve group-id for account-id '%s', got response: status:%d body:%s",
             accountId, statusCode, body));
       }
 
@@ -135,7 +137,7 @@ public class PelionAPI {
       }
 
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("an error has occurred during retrieving of group-id", e);
+      throw new ConnectException("an error has occurred during retrieving of group-id", e);
     }
 
     return groupId;
@@ -169,11 +171,11 @@ public class PelionAPI {
         appId = body.get("id").asText();
         LOG.debug("created application-id '{}' for application with name '{}'", appId, name);
       } else {
-        throw new RuntimeException(String.format("failed to create application with name '%s', got response: status:%d body:%s", name,
+        throw new ConnectException(String.format("failed to create application with name '%s', got response: status:%d body:%s", name,
             statusCode, body));
       }
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(String.format("an error has occurred during creation of application with name '%s'",
+      throw new ConnectException(String.format("an error has occurred during creation of application with name '%s'",
           name), e);
     }
 
@@ -207,13 +209,13 @@ public class PelionAPI {
           accessKeys[i] = body.get("key").asText();
           LOG.debug("created access-key '{}' for application with name '{}'", accessKeys[i], name);
         } else {
-          throw new RuntimeException(
+          throw new ConnectException(
               String.format("failed to create access key for application with name '%s' and id '%s', got response: status:%d body:%s",
                   name, appId, statusCode, body));
         }
       }
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(
+      throw new ConnectException(
           String.format("an error has occurred during creation of access-key for application with name '%s'",
               name), e);
     }
@@ -238,7 +240,7 @@ public class PelionAPI {
       body = mapper.readTree(response.body());
       statusCode = response.statusCode();
       if (statusCode != HttpStatus.SUCCESS.code) {
-        throw new RuntimeException(String.format("failed to delete application with name '%s', got response: status:%d body:%s",
+        throw new ConnectException(String.format("failed to delete application with name '%s', got response: status:%d body:%s",
             name, statusCode, body));
       }
 
@@ -267,11 +269,11 @@ public class PelionAPI {
       } else { // if not '204 - Deleted Successfully' an error has occurred, raise it
         // parse error response
         body = mapper.readTree(response.body());
-        throw new RuntimeException(String.format("failed to delete application-id: '%s', got response: status:%d body:%s",
+        throw new ConnectException(String.format("failed to delete application-id: '%s', got response: status:%d body:%s",
             appId, statusCode, body));
       }
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException(String.format("an error has occurred during deletion of application-id: '%s'",
+      throw new ConnectException(String.format("an error has occurred during deletion of application-id: '%s'",
           name), e);
     }
   }
@@ -309,14 +311,14 @@ public class PelionAPI {
       final HttpResponse<String> response = put("v2/subscriptions", jsonArr);
       final int statusCode = response.statusCode();
       if (statusCode == HttpStatus.NO_CONTENT.code) {
-        LOG.debug("created pre-subscriptions '{}'", jsonArr);
+        LOG.debug("[{}] created pre-subscriptions '{}'", Thread.currentThread().getName(), jsonArr);
       } else {
-        throw new RuntimeException(String.format("failed to create pre-subscriptions, got response: status:%d body:%s",
+        throw new ConnectException(String.format("failed to create pre-subscriptions, got response: status:%d body:%s",
             statusCode, response.body()));
       }
 
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("an error has occurred during creation of pre-subscriptions", e);
+      throw new ConnectException("an error has occurred during creation of pre-subscriptions", e);
     }
   }
 
@@ -340,14 +342,14 @@ public class PelionAPI {
       final int statusCode = response.statusCode();
       if (statusCode == HttpStatus.CREATED.code
           || statusCode == HttpStatus.SUCCESS.code) {
-        LOG.debug("created websocket channel");
+        LOG.debug("[{}] opened websocket channel", Thread.currentThread().getName());
         // flag so that 'connectNotificationChannel()' doesn't need to call again
         wsChannelCreated = true;
       } else {
-        throw new RuntimeException(String.format("failed to create web socket channel, got response: status:%d body:%s", statusCode, body));
+        throw new ConnectException(String.format("failed to create web socket channel, got response: status:%d body:%s", statusCode, body));
       }
     } catch (IOException | InterruptedException e) {
-      throw new RuntimeException("an error has occurred during creation of websocket channel", e);
+      throw new ConnectException("an error has occurred during creation of websocket channel", e);
     }
   }
 
@@ -363,31 +365,36 @@ public class PelionAPI {
         .buildAsync((URI.create(wssURI)), listener).get();
   }
 
-  public RequestFailedException executeDeviceRequest(final DeviceRequest request) {
+  public RequestFailedException executeDeviceRequest(final Struct request) {
     final ObjectNode jsonObj = mapper.createObjectNode();
 
-    putIfNotDefault(jsonObj, "method", request.getBody().getMethod().name());
-    putIfNotDefault(jsonObj, "uri", request.getBody().getUri());
-    putIfNotDefault(jsonObj, "accept", request.getBody().getAccept());
-    putIfNotDefault(jsonObj, "content-type", request.getBody().getContentType());
-    putIfNotDefault(jsonObj, "payload-b64", request.getBody().getPayloadB64());
+    Struct body = (Struct) request.get(DeviceRequestData.BODY_FIELD);
+
+    putIfNotEmpty(jsonObj, "method", body.getString(DeviceRequestData.BodyData.METHOD_FIELD));
+    putIfNotEmpty(jsonObj, "uri", body.getString(DeviceRequestData.BodyData.URI_FIELD));
+    putIfNotEmpty(jsonObj, "accept", body.getString(DeviceRequestData.BodyData.ACCEPT_FIELD));
+    putIfNotEmpty(jsonObj, "content-type", body.getString(DeviceRequestData.BodyData.CONTENT_TYPE_FIELD));
+    putIfNotEmpty(jsonObj, "payload-b64", body.getString(DeviceRequestData.BodyData.PAYLOAD_B64_FIELD));
 
     String path = null;
     int statusCode = 0;
 
     try {
       path = String.format("v2/device-requests/%s?async-id=%s",
-          request.getEp(),
-          request.getAsyncId());
+          request.getString(DeviceRequestData.EP_FIELD),
+          request.getString(DeviceRequestData.ASYNC_ID_FIELD));
 
-      if (request.getRetry() != 0) {
-        path += String.format("&retry=%d", request.getRetry());
+      if (request.get(DeviceRequestData.RETRY_FIELD) != null
+          && request.getInt32(DeviceRequestData.RETRY_FIELD) != 0) {
+        path += String.format("&retry=%d", request.getInt32(DeviceRequestData.RETRY_FIELD));
       }
 
-      if (request.getExpirySeconds() != 0) {
-        path += String.format("&expiry-seconds=%d", request.getExpirySeconds());
+      if (request.get(DeviceRequestData.EXPIRY_SECONDS_FIELD) != null
+          && request.getInt64(DeviceRequestData.EXPIRY_SECONDS_FIELD) != 0) {
+        path += String.format("&expiry-seconds=%d", request.getInt64(DeviceRequestData.EXPIRY_SECONDS_FIELD));
       }
 
+      LOG.debug("[{}] executing device request:'{}' with body:'{}'", Thread.currentThread().getName(), path, jsonAsString(jsonObj));
       final HttpResponse<String> response = post(path, jsonObj);
 
       // parse response
@@ -454,15 +461,12 @@ public class PelionAPI {
         throw new IllegalStateException("Unexpected value: " + method);
     }
 
-    // send request
-    LOG.debug("---> calling: {} ", request.toString());
-    //LOG.debug("headers: '{} body: '{}'", request.headers(), jsonAsString(reqBody));
-    LOG.debug("body: '{}'", jsonAsString(reqBody));
-
+    // log and send request
+    LOG.trace("[{}] ---> invoking:{} with body:'{}'", Thread.currentThread().getName(), request.toString(), jsonAsString(reqBody));
     final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-    LOG.debug("<--- response: ");
-    LOG.debug("http status: '{}', headers: '{}'", response.statusCode(), response.headers());
-    LOG.debug("body: '{}'", response.body());
+    // log response
+    LOG.trace("[{}] <--- got response: http status:'{}', headers:'{}', body:'{}'", Thread.currentThread().getName(), response.statusCode(),
+        response.headers(), response.body());
 
     return response;
   }
@@ -476,8 +480,8 @@ public class PelionAPI {
         .writeValueAsString(data);
   }
 
-  private void putIfNotDefault(ObjectNode node, String name, String value) {
-    if (!value.isEmpty()) {
+  private void putIfNotEmpty(ObjectNode node, String name, String value) {
+    if (value != null && !value.isEmpty()) {
       node.put(name, value);
     }
   }

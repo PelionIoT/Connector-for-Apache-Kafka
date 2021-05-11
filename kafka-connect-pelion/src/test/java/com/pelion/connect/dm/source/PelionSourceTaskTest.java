@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -105,7 +106,7 @@ public class PelionSourceTaskTest {
     assertEquals(1614180566644L, obj.get("timestamp"));
     assertEquals("01767982c9250000000000010011579e", obj.get("original_ep"));
     // the generated payload should be integer according to the provided mapping
-    assertEquals(406L, obj.getStruct("payload_0").get("l"));
+    assertEquals(406L, obj.getStruct("payload").get("l"));
 
     obj = (Struct) records.get(1).value();
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("ep"));
@@ -117,7 +118,7 @@ public class PelionSourceTaskTest {
     assertEquals(1614180568514L, obj.get("timestamp"));
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("original_ep"));
     // the generated payload should be string according to the provided mapping
-    assertEquals("100:100:100:100:100:100", obj.getStruct("payload_0").get("s"));
+    assertEquals("100:100:100:100:100:100", obj.getStruct("payload").get("s"));
   }
 
   @Test
@@ -177,7 +178,7 @@ public class PelionSourceTaskTest {
     assertEquals("01767982c9250000000000010011579e", obj.get("original_ep"));
     assertEquals("default", obj.get("ept"));
 
-    resources = obj.getArray("resource");
+    resources = obj.getArray("resources");
     assertEquals(2, resources.size());
 
     obj = resources.get(0);
@@ -189,7 +190,7 @@ public class PelionSourceTaskTest {
     obj = resources.get(1);
     assertEquals("/10255/0/3", obj.get("path"));
     assertEquals("Vendor", obj.get("rt"));
-    assertEquals("", obj.get("ct"));
+    assertNull(obj.get("ct"));
     assertEquals(true, obj.get("obs"));
 
     obj = (Struct) records.get(1).value();
@@ -197,7 +198,7 @@ public class PelionSourceTaskTest {
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("original_ep"));
     assertEquals("default", obj.get("ept"));
 
-    resources = obj.getArray("resource");
+    resources = obj.getArray("resources");
     assertEquals(2, resources.size());
 
     obj = resources.get(0);
@@ -209,10 +210,11 @@ public class PelionSourceTaskTest {
     obj = resources.get(1);
     assertEquals("/10255/0/3", obj.get("path"));
     assertEquals("Vendor", obj.get("rt"));
-    assertEquals("", obj.get("ct"));
+    assertNull(obj.get("ct"));
     assertEquals(true, obj.get("obs"));
   }
 
+  @Test
   public void shouldHandleResponseMessage() throws Exception {
     String respMsg = "{\n" +
         "   \"async-responses\":[\n" +
@@ -233,10 +235,10 @@ public class PelionSourceTaskTest {
 
     Struct obj = (Struct) records.get(0).value();
     assertEquals("foobar", obj.get("id"));
-    assertEquals("200", obj.get("status"));
+    assertEquals(200, obj.get("status"));
     assertEquals("600", obj.get("payload"));
     assertEquals("text/plain", obj.get("ct"));
-    assertEquals("0", obj.get("max-age"));
+    assertEquals(0, obj.get("max_age"));
   }
 
   @Test

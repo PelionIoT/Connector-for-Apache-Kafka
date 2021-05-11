@@ -17,14 +17,12 @@
 package com.pelion.connect.dm.source;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.pelion.connect.dm.schemas.AsyncIDResponseData;
+import com.pelion.connect.dm.schemas.EndpointData;
+import com.pelion.connect.dm.schemas.NotificationData;
 import com.pelion.connect.dm.utils.PelionAPI;
-import com.pelion.protobuf.PelionProtos.AsyncIDResponse;
-import com.pelion.protobuf.PelionProtos.EndpointData;
-import com.pelion.protobuf.PelionProtos.NotificationData;
-import com.pelion.protobuf.PelionProtos.ResourceData;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
-import org.apache.kafka.connect.data.SchemaAndValue;
 import org.apache.kafka.connect.data.SchemaBuilder;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.source.SourceTask;
@@ -52,7 +50,6 @@ import static com.pelion.connect.dm.utils.PelionConnectorUtils.INTEGER;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.base64Decode;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.getVersion;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.mapper;
-import static com.pelion.connect.dm.utils.PelionConnectorUtils.protobufData;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.readFile;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.sleep;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.uniqueIndex;
@@ -175,34 +172,42 @@ public class PelionSourceTask extends SourceTask {
 
   private void processNotificationData(List<SourceRecord> records, JsonNode jsonData) {
     for (final JsonNode jsonNode : jsonData) {
-      // build protobuf obj from json
-      NotificationData.Builder notification = NotificationData.newBuilder();
+      // would also be used as a record key
+      String ep = jsonNode.get("ep").asText();
 
-      notification.setEp(jsonNode.get("ep").asText());
-      notification.setPath(jsonNode.get("path").asText());
-      notification.setCt(jsonNode.get("ct").asText());
-      notification.setPayloadB64(jsonNode.get("payload").asText());
-      notification.setMaxAge(jsonNode.get("max-age").asInt());
-      notification.setUid(jsonNode.get("uid").asText());
-      notification.setTimestamp(jsonNode.get("timestamp").asLong());
-      notification.setOriginalEp(jsonNode.get("original-ep").asText());
+      Struct ndStruct = new Struct(NotificationData.SCHEMA)
+          .put(NotificationData.EP_FIELD, ep)
+          .put(NotificationData.PATH_FIELD, jsonNode.get("path").asText())
+          .put(NotificationData.CT_FIELD, jsonNode.get("ct").asText())
+          .put(NotificationData.PAYLOAD_B64_FIELD, jsonNode.get("payload").asText())
+          .put(NotificationData.MAX_AGE_FIELD, jsonNode.get("max-age").asInt())
+          .put(NotificationData.UID_FIELD, jsonNode.get("uid").asText())
+          .put(NotificationData.TIMESTAMP_FIELD, jsonNode.get("timestamp").asLong())
+          .put(NotificationData.ORIGINAL_EP_FIELD, jsonNode.get("original-ep").asText());
 
       // determine resource
-      String resource = notification.getPath().split("/")[3];
+      String resource = jsonNode.get("path").asText().split("/")[3];
+      // create connect struct
+      Struct payloadStruct = new Struct(NotificationData.PayloadData.SCHEMA);
+
       // check the type associated with the resource
       if (mappingExists(INTEGER, resource)) {
-        notification.setL(Long.parseLong(base64Decode(notification.getPayloadB64())));
+        payloadStruct.put(NotificationData.PayloadData.L_FIELD,
+            Long.parseLong(base64Decode(jsonNode.get("payload").asText())));
       } else if (mappingExists(DOUBLE, resource)) {
-        notification.setD(Double.parseDouble(base64Decode(notification.getPayloadB64())));
+        payloadStruct.put(NotificationData.PayloadData.D_FIELD,
+            Double.parseDouble(base64Decode(jsonNode.get("payload").asText())));
       } else if (mappingExists(BOOLEAN, resource)) {
-        notification.setB(Boolean.parseBoolean(base64Decode(notification.getPayloadB64())));
+        payloadStruct.put(NotificationData.PayloadData.B_FIELD,
+            Boolean.parseBoolean(base64Decode(jsonNode.get("payload").asText())));
       } else { // treat it as a generic string
-        notification.setS(base64Decode(notification.getPayloadB64()));
+        payloadStruct.put(NotificationData.PayloadData.S_FIELD,
+            base64Decode(jsonNode.get("payload").asText()));
       }
 
-      // build connect schema/value from protobuf
-      final SchemaAndValue schemaAndValue = protobufData
-          .toConnectData(Schemas.PROTOBUF_ND_SCHEMA, notification.build());
+      // assign the payload
+      ndStruct.put(NotificationData.PAYLOAD_FIELD, payloadStruct);
+
       // build the connect record
       SourceRecord record = new SourceRecord(
           null,
@@ -210,9 +215,9 @@ public class PelionSourceTask extends SourceTask {
           this.ndTopic,
           null,
           SchemaBuilder.string().build(),
-          notification.getEp(),
-          schemaAndValue.schema(),
-          schemaAndValue.value());
+          ep,
+          NotificationData.SCHEMA,
+          ndStruct);
 
       records.add(record);
     }
@@ -226,31 +231,42 @@ public class PelionSourceTask extends SourceTask {
     }
 
     for (final JsonNode jsonNode : jsonData) {
-      // build protobuf obj from json
-      EndpointData.Builder endpoint = EndpointData.newBuilder();
+      // would also be used as a record key
+      String ep = jsonNode.get("ep").asText();
 
-      endpoint.setEp(jsonNode.get("ep").asText());
-      endpoint.setOriginalEp(jsonNode.get("original-ep").asText());
-      // note: we use 'path()' instead of 'get()' for optional fields
-      endpoint.setEpt(jsonNode.path("ept").asText());
-      endpoint.setQ(jsonNode.path("q").asBoolean());
-      endpoint.setTimestamp(jsonNode.get("timestamp").asLong());
+      Struct ndStruct = new Struct(EndpointData.SCHEMA)
+          .put(EndpointData.EP_FIELD, ep)
+          .put(EndpointData.ORIGINAL_EP_FIELD, jsonNode.get("original-ep").asText())
+          .put(EndpointData.EP_TYPE_FIELD, jsonNode.path("ept").asText())
+          .put(EndpointData.QUEUE_FIELD, jsonNode.path("q").asBoolean())
+          .put(EndpointData.TIMESTAMP_FIELD, jsonNode.path("timestamp").asLong());
 
+      // traverse resources
       final JsonNode resources = jsonNode.get("resources");
+      final List<Struct> list = new ArrayList<>(resources.size());
       for (final JsonNode r : resources) {
-        ResourceData.Builder resource = ResourceData.newBuilder();
-        resource.setPath(r.get("path").asText());
-        resource.setIf(r.path("if").asText());
-        resource.setRt(r.path("rt").asText());
-        resource.setCt(r.path("ct").asText());
-        resource.setObs(r.path("obs").asBoolean());
-
-        endpoint.addResource(resource.build());
+        // create connect struct
+        Struct resStruct = new Struct(EndpointData.ResourceDataSchema.SCHEMA);
+        resStruct.put(EndpointData.ResourceDataSchema.PATH_FIELD, r.get("path").asText());
+        if (r.has("if")) {
+          resStruct.put(EndpointData.ResourceDataSchema.IF_FIELD, r.get("if").asText());
+        }
+        if (r.has("rt")) {
+          resStruct.put(EndpointData.ResourceDataSchema.RT_FIELD, r.get("rt").asText());
+        }
+        if (r.has("ct")) {
+          resStruct.put(EndpointData.ResourceDataSchema.CT_FIELD, r.get("ct").asText());
+        }
+        if (r.has("obs")) {
+          resStruct.put(EndpointData.ResourceDataSchema.OBS_FIELD, r.get("obs").asBoolean());
+        }
+        // add it to the list
+        list.add(resStruct);
       }
 
-      // build the connect record
-      final SchemaAndValue schemaAndValue = protobufData
-          .toConnectData(Schemas.PROTOBUF_ED_SCHEMA, endpoint.build());
+      // assign the list
+      ndStruct.put(EndpointData.RD_FIELD, list);
+
       // build the connect record
       SourceRecord record = new SourceRecord(
           null,
@@ -258,9 +274,9 @@ public class PelionSourceTask extends SourceTask {
           this.edTopic,
           null,
           SchemaBuilder.string().build(),
-          endpoint.getEp(),
-          schemaAndValue.schema(),
-          schemaAndValue.value());
+          ep,
+          EndpointData.SCHEMA,
+          ndStruct);
 
       // add it to our list
       records.add(record);
@@ -269,19 +285,25 @@ public class PelionSourceTask extends SourceTask {
 
   private void processAsyncResponses(List<SourceRecord> records, JsonNode jsonData) {
     for (final JsonNode jsonNode : jsonData) {
-      // build protobuf obj from json
-      AsyncIDResponse.Builder response = AsyncIDResponse.newBuilder();
 
-      response.setId(jsonNode.get("id").asText());
-      response.setPayload(base64Decode(jsonNode.get("payload").asText()));
-      response.setStatus(AsyncIDResponse.Status.forNumber(jsonNode.get("status").asInt()));
-      response.setError(jsonNode.path("error").asText());
-      response.setCt(jsonNode.path("ct").asText());
-      response.setMaxAge(jsonNode.path("max-age").asInt());
+      // would also be used as a record key
+      String id = jsonNode.get("id").asText();
 
-      // build the connect record
-      final SchemaAndValue schemaAndValue = protobufData
-          .toConnectData(Schemas.PROTOBUF_AR_SCHEMA, response.build());
+      Struct responseStruct = new Struct(AsyncIDResponseData.SCHEMA)
+          .put(AsyncIDResponseData.ID_FIELD, id)
+          .put(AsyncIDResponseData.PAYLOAD_FIELD, base64Decode(jsonNode.get("payload").asText()))
+          .put(AsyncIDResponseData.STATUS_FIELD, jsonNode.get("status").asInt());
+
+      if (jsonNode.has("error")) {
+        responseStruct.put(AsyncIDResponseData.ERROR_FIELD, jsonNode.get("error").asText());
+      }
+      if (jsonNode.has("ct")) {
+        responseStruct.put(AsyncIDResponseData.CT_FIELD, jsonNode.get("ct").asText());
+      }
+      if (jsonNode.has("max-age")) {
+        responseStruct.put(AsyncIDResponseData.MAX_AGE_FIELD, jsonNode.get("max-age").asInt());
+      }
+
       // build the connect record
       SourceRecord record = new SourceRecord(
           null,
@@ -289,9 +311,9 @@ public class PelionSourceTask extends SourceTask {
           this.arTopic,
           null,
           SchemaBuilder.string().build(),
-          response.getId(),
-          schemaAndValue.schema(),
-          schemaAndValue.value());
+          id,
+          AsyncIDResponseData.SCHEMA,
+          responseStruct);
 
       // add it to our list
       records.add(record);
@@ -305,21 +327,6 @@ public class PelionSourceTask extends SourceTask {
   // visible for testing
   public int getRetries() {
     return retries;
-  }
-
-  static class Schemas {
-
-    // "notification" protobuf schema
-    static final ProtobufSchema PROTOBUF_ND_SCHEMA = new ProtobufSchema(
-        NotificationData.getDescriptor());
-
-    // "registration" protobuf schema
-    static final ProtobufSchema PROTOBUF_ED_SCHEMA = new ProtobufSchema(
-        EndpointData.getDescriptor());
-
-    // "async-response" protobuf schema
-    static final ProtobufSchema PROTOBUF_AR_SCHEMA = new ProtobufSchema(
-        AsyncIDResponse.getDescriptor());
   }
 
   class PelionNotificationChannelHandler {
@@ -395,6 +402,7 @@ public class PelionSourceTask extends SourceTask {
       }
     }
 
+    @SuppressWarnings("checkstyle:BooleanExpressionComplexity")
     boolean isReconnectPossible() {
       // extract error code returned from Pelion to determine if reconnect is possible
       // refer to Pelion API '/v2/notification/websocket-connect' response codes
@@ -410,10 +418,10 @@ public class PelionSourceTask extends SourceTask {
       keepAliveThread = executorService.scheduleAtFixedRate(() -> {
         // if the channel is still open, send ping
         if (!websocket.isOutputClosed()) {
-          LOG.debug("[{}] sending keepalive ping", Thread.currentThread().getName());
+          LOG.trace("[{}] sending keepalive ping", Thread.currentThread().getName());
           websocket.sendPing(pingMsg)
               .exceptionally(ex -> {
-                LOG.debug("[{}] sending keepalive ping error '{}'", Thread.currentThread().getName(), ex.getMessage());
+                LOG.error("[{}] sending keepalive ping error '{}'", Thread.currentThread().getName(), ex.getMessage());
                 releaseResources();
                 return null;
               });
@@ -432,6 +440,9 @@ public class PelionSourceTask extends SourceTask {
       }
       // clear listener last status
       listener.clearErrors();
+
+      // clear queue
+      queue.clear();
     }
   }
 
@@ -449,7 +460,7 @@ public class PelionSourceTask extends SourceTask {
 
     @Override
     public void onOpen(WebSocket webSocket) {
-      LOG.debug("[{}] WebSocket onOpen()", Thread.currentThread().getName());
+      LOG.trace("[{}] WebSocket onOpen()", Thread.currentThread().getName());
       WebSocket.Listener.super.onOpen(webSocket);
     }
 
@@ -458,7 +469,7 @@ public class PelionSourceTask extends SourceTask {
       text.append(data);
       if (last) {
         queue.add(text.toString());
-        LOG.debug("[{}] {}", Thread.currentThread().getName(), text);
+        LOG.trace("[{}] {}", Thread.currentThread().getName(), text);
         text.setLength(0); // clear buffer
       }
       return WebSocket.Listener.super.onText(webSocket, data, last);
@@ -466,7 +477,7 @@ public class PelionSourceTask extends SourceTask {
 
     @Override
     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-      LOG.debug("[{}] WebSocket onClose(), code:{}, reason:{}", Thread.currentThread().getName(), statusCode, reason);
+      LOG.trace("[{}] WebSocket onClose(), code:{}, reason:{}", Thread.currentThread().getName(), statusCode, reason);
       lastStatusCode = statusCode; // should contain Pelion error response code
       lastCloseReason = reason;
       return WebSocket.Listener.super.onClose(webSocket, statusCode, reason);
@@ -474,7 +485,7 @@ public class PelionSourceTask extends SourceTask {
 
     @Override
     public void onError(WebSocket webSocket, Throwable error) {
-      LOG.debug("[{}] WebSocket onError(), Error: {}", Thread.currentThread().getName(), error.getMessage());
+      LOG.error("[{}] WebSocket onError(), Error: {}", Thread.currentThread().getName(), error.getMessage());
       lastStatusCode = -1; // flag for any other errors
       lastCloseReason = error.getMessage();
     }

@@ -17,12 +17,10 @@
 package com.pelion.connect.dm.sink;
 
 import com.pelion.connect.dm.exception.RequestFailedException;
+import com.pelion.connect.dm.schemas.DeviceRequestData;
 import com.pelion.connect.dm.utils.PelionAPI;
-import com.pelion.protobuf.PelionProtos.DeviceRequest.Body.Method;
-import io.confluent.connect.protobuf.ProtobufData;
-import io.confluent.kafka.schemaregistry.protobuf.ProtobufSchema;
 import org.apache.kafka.connect.data.Schema;
-import org.apache.kafka.connect.data.SchemaAndValue;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.junit.Before;
@@ -33,9 +31,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.pelion.protobuf.PelionProtos.DeviceRequest;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PelionSinkTaskTest {
 
@@ -44,11 +43,6 @@ public class PelionSinkTaskTest {
   private PelionSinkTask task;
 
   private final PelionAPI pelionAPI = mock(PelionAPI.class);
-
-  protected static final ProtobufSchema PROTOBUF_REQ_SCHEMA = new ProtobufSchema(
-      DeviceRequest.getDescriptor());
-
-  protected static final ProtobufData protobufData = new ProtobufData();
 
   @Before
   public void setup() {
@@ -59,17 +53,15 @@ public class PelionSinkTaskTest {
 
   @Test
   public void shouldCorrectlyExecuteDeviceRequest() {
-    DeviceRequest request = buildDeviceRequest();
-    SchemaAndValue schemaAndValue = protobufData
-        .toConnectData(PROTOBUF_REQ_SCHEMA, request);
+    Struct request = buildDeviceRequest();
 
     SinkRecord record = new SinkRecord(
         TOPIC,
         1,
         Schema.STRING_SCHEMA,
         "id",
-        schemaAndValue.schema(),
-        schemaAndValue.value(),
+        request.schema(),
+        request,
         0);
 
     task.put(Collections.singletonList(record));
@@ -78,17 +70,15 @@ public class PelionSinkTaskTest {
 
   @Test(expected = ConnectException.class)
   public void shouldBackoffAndFailAfterFailingToExecuteDeviceRequestCauseOfIOError() {
-    DeviceRequest request = buildDeviceRequest();
-    SchemaAndValue schemaAndValue = protobufData
-        .toConnectData(PROTOBUF_REQ_SCHEMA, request);
+    Struct request = buildDeviceRequest();
 
     SinkRecord record = new SinkRecord(
         TOPIC,
         1,
         Schema.STRING_SCHEMA,
         "id",
-        schemaAndValue.schema(),
-        schemaAndValue.value(),
+        request.schema(),
+        request,
         0);
 
     // mock an IO error
@@ -103,17 +93,15 @@ public class PelionSinkTaskTest {
 
   @Test(expected = ConnectException.class)
   public void shouldFailAfterFailingToExecuteDeviceRequestIfIgnoreErrorsIsFalse() {
-    DeviceRequest request = buildDeviceRequest();
-    SchemaAndValue schemaAndValue = protobufData
-        .toConnectData(PROTOBUF_REQ_SCHEMA, request);
+    Struct request = buildDeviceRequest();
 
     SinkRecord record = new SinkRecord(
         TOPIC,
         1,
         Schema.STRING_SCHEMA,
         "id",
-        schemaAndValue.schema(),
-        schemaAndValue.value(),
+        request.schema(),
+        request,
         0);
 
     // mock a failure request
@@ -133,17 +121,15 @@ public class PelionSinkTaskTest {
     task = new PelionSinkTask();
     task.start(props, pelionAPI);
 
-    DeviceRequest request = buildDeviceRequest();
-    SchemaAndValue schemaAndValue = protobufData
-        .toConnectData(PROTOBUF_REQ_SCHEMA, request);
+    Struct request = buildDeviceRequest();
 
     SinkRecord record = new SinkRecord(
         TOPIC,
         1,
         Schema.STRING_SCHEMA,
         "id",
-        schemaAndValue.schema(),
-        schemaAndValue.value(),
+        request.schema(),
+        request,
         0);
 
     // mock a failure request
@@ -154,17 +140,21 @@ public class PelionSinkTaskTest {
     verify(pelionAPI).executeDeviceRequest(request);
   }
 
-  private DeviceRequest buildDeviceRequest() {
-    DeviceRequest.Builder request = DeviceRequest.newBuilder();
+  private Struct buildDeviceRequest() {
+    Struct request = new Struct(DeviceRequestData.SCHEMA);
 
-    request.setEp("01767982c9250000000000010011579e");
-    request.setAsyncId("foobar");
-    DeviceRequest.Body.Builder body = DeviceRequest.Body.newBuilder();
-    body.setMethod(Method.GET);
-    body.setUri("/3200/0/5501");
-    request.setBody(body.build());
+    // the endpoint
+    request.put(DeviceRequestData.EP_FIELD, "01767982c9250000000000010011579e");
 
-    return request.build();
+    // the body
+    Struct body = new Struct((DeviceRequestData.BodyData.SCHEMA));
+    body.put(DeviceRequestData.BodyData.METHOD_FIELD, "GET");
+    body.put(DeviceRequestData.BodyData.URI_FIELD, "/3200/0/5501");
+
+    // assign the body
+    request.put(DeviceRequestData.BODY_FIELD, body);
+
+    return request;
   }
 
   private Map<String, String> getDefaultProps() {

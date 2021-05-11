@@ -18,11 +18,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.pelion</groupId>
-        <artifactId>kafka-connect-pelion-parent</artifactId>
-        <version>1.0.2-SNAPSHOT</version>
-    </parent>
+    <groupId>com.pelion</groupId>
     <artifactId>kafka-connect-pelion</artifactId>
     <packaging>jar</packaging>
     <version>1.0.2-SNAPSHOT</version>
@@ -46,7 +42,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
+
     <scm>
         <connection>scm:git:git://github.com/PelionIoT/kafka-connect-pelion.git</connection>
         <developerConnection>scm:git:git@github.com:PelionIoT/kafka-connect-pelion.git</developerConnection>
@@ -88,11 +84,6 @@
             <artifactId>connect-runtime</artifactId>
             <version>${kafka.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-connect-protobuf-converter</artifactId>
-            <version>${confluent.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>

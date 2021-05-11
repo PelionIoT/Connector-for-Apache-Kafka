@@ -16,11 +16,10 @@
 
 package com.pelion.connect.dm.sink;
 
-import com.google.protobuf.DynamicMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.pelion.connect.dm.exception.RequestFailedException;
+import com.pelion.connect.dm.schemas.DeviceRequestData;
 import com.pelion.connect.dm.utils.PelionAPI;
-import com.pelion.protobuf.PelionProtos.DeviceRequest;
+import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
@@ -32,7 +31,6 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.getVersion;
-import static com.pelion.connect.dm.utils.PelionConnectorUtils.protobufData;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.readFile;
 import static com.pelion.connect.dm.utils.PelionConnectorUtils.sleep;
 
@@ -87,7 +85,7 @@ public class PelionSinkTask extends SinkTask {
     LOG.trace("[{}] received {} records with first record kafka coordinates:(topic:{},partition:{},offset:{}).",
         Thread.currentThread().getName(), recordsCount, first.topic(), first.kafkaPartition(), first.kafkaOffset());
 
-    records.stream().map(this::asDeviceRequest).forEach(request -> {
+    records.stream().map(this::asStruct).forEach(request -> {
       while (true) { // loop to allow retries
         RequestFailedException rfe = pelionAPI.executeDeviceRequest(request);
         if (rfe == null) {
@@ -112,7 +110,7 @@ public class PelionSinkTask extends SinkTask {
 
         } else { // Pelion replied with error status
           LOG.debug("[{}] request with async-id '{}' throw an error: {}",
-              Thread.currentThread().getName(), request.getAsyncId(), rfe.getMessage());
+              Thread.currentThread().getName(), request.getString(DeviceRequestData.ASYNC_ID_FIELD), rfe.getMessage());
           if (!this.ignoreErrors) { // should we stop ?
             throw new ConnectException(rfe);
           } else {
@@ -133,17 +131,11 @@ public class PelionSinkTask extends SinkTask {
     return retries;
   }
 
-  private DeviceRequest asDeviceRequest(SinkRecord record) {
-    DynamicMessage msg = (DynamicMessage) protobufData
-        .fromConnectData(record.valueSchema(), record.value())
-        .getValue();
-
-    try {
-      return DeviceRequest.parseFrom(msg.toByteArray());
-    } catch (InvalidProtocolBufferException e) {
-      e.printStackTrace();
+  private Struct asStruct(SinkRecord record) {
+    if (record.value() instanceof Struct) {
+      return (Struct) record.value();
+    } else {
+      throw new ConnectException("Kafka record value should be of instance Struct, schemaless JSON or JSON String.");
     }
-
-    return null;
   }
 }
