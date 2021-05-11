@@ -4,7 +4,7 @@
     "connector.class": "com.pelion.connect.dm.source.PelionSourceConnector",
     "tasks.max": "1",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-    "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": "http://schema-registry:8081",
     "pelion.access.key.list": "<PELION_ACCESS_KEY>",
     "topic.prefix": "mypelion",

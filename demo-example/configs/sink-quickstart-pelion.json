@@ -5,7 +5,7 @@
     "tasks.max": "1",
     "topics": "mypelion.requests",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-    "value.converter": "io.confluent.connect.protobuf.ProtobufConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": "http://schema-registry:8081",
     "pelion.api.host": "api.us-east-1.mbedcloud.com",
     "pelion.access.key": "<PELION_ACCESS_KEY>"
