@@ -308,8 +308,8 @@ docker logs -f connect
   ```
 - Continue to click the button on the device (or in the virtual demo) and see alert messages being printed out:
   ```
-{"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":4}}
-{"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":5}}
+  {"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":4}}
+  {"endpoint":{"string":"01795a4c18c60000000000010011c8c5"},"path":{"string":"/3200/0/5501"},"readings":{"long":5}}
   ```
   
 - As an exercise, you can deploy another connector to forward those `alert` messages to a Slack channel for instant notifications!
