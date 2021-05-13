@@ -199,7 +199,7 @@ public class PelionSourceTask extends SourceTask {
             Double.parseDouble(base64Decode(jsonNode.get("payload").asText())));
       } else if (mappingExists(BOOLEAN, resource)) {
         payloadStruct.put(NotificationData.PayloadData.B_FIELD,
-            Boolean.parseBoolean(base64Decode(jsonNode.get("payload").asText())));
+            base64Decode(jsonNode.get("payload").asText()).equals("1"));
       } else { // treat it as a generic string
         payloadStruct.put(NotificationData.PayloadData.S_FIELD,
             base64Decode(jsonNode.get("payload").asText()));

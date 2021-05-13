@@ -78,21 +78,41 @@ public class PelionSourceTaskTest {
         "         \"original-ep\":\"01767982c9250000000000010011579e\"\n" +
         "      },\n" +
         "      {\n" +
+        "         \"ep\":\"01795f40880c0000000000010011d040\",\n" +
+        "         \"path\":\"/3201/0/5700\",\n" +
+        "         \"ct\":\"text/plain\",\n" +
+        "         \"payload\":\"MjIuNjAwMDAw\",\n" +
+        "         \"max-age\":0,\n" +
+        "         \"uid\":\"393a91a7-816e-4b87-a243-90afc1830321\",\n" +
+        "         \"timestamp\":1620905184565,\n" +
+        "         \"original-ep\":\"01795f40880c0000000000010011d040\"\n" +
+        "      },\n" +
+        "      {\n" +
         "         \"ep\":\"0176c7561cf3000000000001001122d4\",\n" +
         "         \"path\":\"/3201/0/5853\",\n" +
         "         \"ct\":\"text/plain\",\n" +
         "         \"payload\":\"MTAwOjEwMDoxMDA6MTAwOjEwMDoxMDA=\",\n" +
         "         \"max-age\":0,\n" +
         "         \"uid\":\"0f2e03b5-1455-3nce-ba53-adacd4c2waf1\",\n" +
-        "         \"timestamp\":1614180568514," +
+        "         \"timestamp\":1614180568514,\n" +
         "         \"original-ep\":\"0176c7561cf3000000000001001122d4\"\n" +
+        "      },\n" +
+        "      {\n" +
+        "         \"ep\":\"0179239a3a8f0000000000010011873a\",\n" +
+        "         \"path\":\"/3201/0/5850\",\n" +
+        "         \"ct\":\"text/plain\",\n" +
+        "         \"payload\":\"MQ==\",\n" +
+        "         \"max-age\":0,\n" +
+        "         \"uid\":\"511da825-8448-4a58-8e18-3a2054240603\",\n" +
+        "         \"timestamp\":1614180569514,\n" +
+        "         \"original-ep\":\"0179239a3a8f0000000000010011873a\"\n" +
         "      }\n" +
         "   ]\n" +
         "}";
     queue.add(notifMsg);
 
     List<SourceRecord> records = task.poll();
-    assertEquals(2, records.size());
+    assertEquals(4, records.size());
 
     Struct obj;
 
@@ -109,6 +129,18 @@ public class PelionSourceTaskTest {
     assertEquals(406L, obj.getStruct("payload").get("l"));
 
     obj = (Struct) records.get(1).value();
+    assertEquals("01795f40880c0000000000010011d040", obj.get("ep"));
+    assertEquals("/3201/0/5700", obj.get("path"));
+    assertEquals("text/plain", obj.get("ct"));
+    assertEquals("MjIuNjAwMDAw", obj.get("payload_b64"));
+    assertEquals(0, obj.get("max_age"));
+    assertEquals("393a91a7-816e-4b87-a243-90afc1830321", obj.get("uid"));
+    assertEquals(1620905184565L, obj.get("timestamp"));
+    assertEquals("01795f40880c0000000000010011d040", obj.get("original_ep"));
+    // the generated payload should be integer according to the provided mapping
+    assertEquals(22.6, obj.getStruct("payload").get("d"));
+
+    obj = (Struct) records.get(2).value();
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("ep"));
     assertEquals("/3201/0/5853", obj.get("path"));
     assertEquals("text/plain", obj.get("ct"));
@@ -119,6 +151,18 @@ public class PelionSourceTaskTest {
     assertEquals("0176c7561cf3000000000001001122d4", obj.get("original_ep"));
     // the generated payload should be string according to the provided mapping
     assertEquals("100:100:100:100:100:100", obj.getStruct("payload").get("s"));
+
+    obj = (Struct) records.get(3).value();
+    assertEquals("0179239a3a8f0000000000010011873a", obj.get("ep"));
+    assertEquals("/3201/0/5850", obj.get("path"));
+    assertEquals("text/plain", obj.get("ct"));
+    assertEquals("MQ==", obj.get("payload_b64"));
+    assertEquals(0, obj.get("max_age"));
+    assertEquals("511da825-8448-4a58-8e18-3a2054240603", obj.get("uid"));
+    assertEquals(1614180569514L, obj.get("timestamp"));
+    assertEquals("0179239a3a8f0000000000010011873a", obj.get("original_ep"));
+    // the generated payload should be string according to the provided mapping
+    assertEquals(true, obj.getStruct("payload").get("b"));
   }
 
   @Test
@@ -315,7 +359,7 @@ public class PelionSourceTaskTest {
     props.put(PelionSourceConnectorConfig.PELION_ACCESS_KEY_LIST_CONFIG, "key1, key2");
     props.put(PelionSourceConnectorConfig.TOPIC_PREFIX, "mypelion");
     props.put(PelionSourceConnectorConfig.SUBSCRIPTIONS_CONFIG, "presub1, presub2, presub3, presub4, presub5");
-    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "1:i, 5501:i, 21:i, 5853:s");
+    props.put(PelionSourceConnectorConfig.RESOURCE_TYPE_MAPPING_CONFIG, "5501:i, 5700:d, 5850:b, 5853:s");
     props.put(PelionSourceConnectorConfig.MAX_RETRIES, "2");
     props.put(PelionSourceConnectorConfig.RETRY_BACKOFF_MS, "100");
     props.put("subscriptions.presub1.endpoint-name", "01767982c9250000000000010011579e");
