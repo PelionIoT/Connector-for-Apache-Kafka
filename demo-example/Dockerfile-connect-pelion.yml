@@ -1,6 +1,6 @@
 FROM confluentinc/cp-kafka-connect-base:6.1.1
 
-ENV KAFKA_CONNECT_PELION_VERSION 1.0.2
+ENV KAFKA_CONNECT_PELION_VERSION 1.0.3
 
 # add some sample connectors
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:11.0.4 \
