@@ -5,7 +5,7 @@ ENV KAFKA_CONNECT_PELION_VERSION 1.0.2
 # add some sample connectors
 RUN confluent-hub install --no-prompt confluentinc/kafka-connect-elasticsearch:11.0.4 \
   && confluent-hub install --no-prompt confluentinc/kafka-connect-s3:10.0.0 \
-  && confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.3.0
+  && confluent-hub install --no-prompt confluentinc/kafka-connect-http:1.4.0
 
 # install kafka-connect-pelion connector
 RUN curl -k -SL https://github.com/PelionIoT/kafka-connect-pelion/releases/download/${KAFKA_CONNECT_PELION_VERSION}/pelion-kafka-connect-pelion-${KAFKA_CONNECT_PELION_VERSION}.zip -o /tmp/kafka-connect-pelion.zip \
