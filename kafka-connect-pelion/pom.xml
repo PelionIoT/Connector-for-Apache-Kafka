@@ -169,7 +169,7 @@
                             <goal>kafka-connect</goal>
                         </goals>
                         <configuration>
-                            <title>Kafka Connect Pelion</title>
+                            <title>Pelion IoT Platform Connector</title>
                             <documentationUrl>
                                 https://github.com/PelionIoT/kafka-connect-pelion/blob/master/README.md
                             </documentationUrl>
@@ -185,8 +185,9 @@
                             <logo>logos/pelion.png</logo>
 
                             <supportProviderName>Pelion Ltd.</supportProviderName>
-                            <supportSummary>Pelion supports the source connector alongside community members as part of
-                                its Pelion IoT Platform offering.
+                            <supportSummary>
+                                <![CDATA[Pelion supports the source connector alongside community members as part of its
+                                <a href="https://pelion.com/">Pelion IoT Platform</a> offering.]]>
                             </supportSummary>
                             <supportUrl>https://www.pelion.com/docs/</supportUrl>
                             <supportLogo>logos/pelion.png</supportLogo>
