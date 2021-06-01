@@ -2,7 +2,7 @@
 
 ![Kafka Connect Pelion](https://i.ibb.co/0rJ72Bq/kafka-connect-pelion-featured-image-github.jpg "Kafka Connect Pelion")
 
-Kafka Connect Pelion is a [Kafka Connector](http://kafka.apache.org/documentation.html#connect) plugin which includes both  a Source and a Sink connector. The Source connector
+Kafka Connect Pelion is a [Kafka Connector](http://kafka.apache.org/documentation.html#connect) plugin which includes both a Source and a Sink connector. The Source connector
 is used to consume data from Pelion IoT platform (device registrations, observations and responses) and store
 them to Apache Kafka. The Sink Connector reads messages from a Kafka topic (device management requests)
 and forwards them to Pelion IoT for processing. When used in tandem, the two connectors allow communicating with
@@ -42,8 +42,7 @@ The table below outlines information about each configuration setting:
 | subscriptions.$alias.resource-path| List | Yes | None | List of resources to pre-subscribe (optionally having an * character at the end) e.g: "/3200/0/5501, /3303/*, ..". |
 | subscriptions.$alias.endpoint-type| String | Yes | None | The endpoint type e.g: "Sensor". |
 
-> Note: For protecting the access keys and avoiding being specified in a properties file, follow the [Externalizing Secrets](https://docs.confluent.io/platform/current/connect/security.html#externalizing-secrets) guide
-> provided by Confluent to securely store and utilize secrets in connector configurations.
+> NOTE: For protecting the access keys and avoiding being specified in a properties file in a production environment, follow the [Externalizing Secrets](https://docs.confluent.io/platform/current/connect/security.html#externalizing-secrets) guide provided by Confluent to securely store and utilize secrets in connector configurations.
 
 #### Consuming Pelion messages
 

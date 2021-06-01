@@ -77,6 +77,9 @@ In order to follow this tutorial, you'll need:
 - Prior to deploying the Pelion connectors we need to adjust their configuration. First, let's start with the Source connector.
   Open the `configs/source-quickstart-pelion` configuration file and adjust the following entries with your Pelion access key and
   device id:
+  
+    > NOTE: For protecting the access keys and avoiding being specified in a properties file in a production environment, follow the [Externalizing Secrets](https://docs.confluent.io/platform/current/connect/security.html#externalizing-secrets) guide provided by Confluent to securely store and utilize secrets in connector configurations.
+
   ```
   ...
   "pelion.access.key.list": "<PELION_ACCESS_KEY>"
@@ -87,6 +90,7 @@ In order to follow this tutorial, you'll need:
   ```
   "pelion.access.key": "<PELION_ACCESS_KEY>"
   ```
+  
 
 ## Step 3 - Deploy Connector configurations:
 
