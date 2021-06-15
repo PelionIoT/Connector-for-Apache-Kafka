@@ -1,8 +1,8 @@
-# kafka-connect-pelion
+# Connector-for-Apache-Kafka®
 
-![Kafka Connect Pelion](https://i.ibb.co/0rJ72Bq/kafka-connect-pelion-featured-image-github.jpg "Kafka Connect Pelion")
+![Connector-for-Apache-Kafka](https://i.ibb.co/0rJ72Bq/kafka-connect-pelion-featured-image-github.jpg "Connector-for-Apache-Kafka")
 
-Kafka Connect Pelion is a [Kafka Connector](http://kafka.apache.org/documentation.html#connect) plugin which includes both a Source and a Sink connector. The Source connector
+Connector-for-Apache-Kafka is a [Kafka Connector](http://kafka.apache.org/documentation.html#connect) plugin which includes both a Source and a Sink connector. The Source connector
 is used to consume data from Pelion IoT platform (device registrations, observations and responses) and store
 them to Apache Kafka. The Sink Connector reads messages from a Kafka topic (device management requests)
 and forwards them to Pelion IoT for processing. When used in tandem, the two connectors allow communicating with
@@ -132,3 +132,6 @@ Prior to installing a Source/Sink connector configuration, you can enable DEBUG 
 ```
 curl -s -X PUT -H "Content-Type:application/json" http://localhost:8083/admin/loggers/com.pelion.connect.dm -d '{"level": "DEBUG"}' | jq '.'
 ```
+
+&nbsp;
+> “Apache and Kafka are registered trademark of the Apache Software Foundation”.
