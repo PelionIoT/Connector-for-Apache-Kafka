@@ -21,7 +21,7 @@ This must be done on each of the installations where Connect will be run. For mo
 ### Source Connector Configuration
 _com.pelion.connect.dm.source.PelionSourceConnector_
 
-An example template configuration of the source connector (`source-quickstart-pelion.properties`) can be found in [the repository](https://github.com/PelionIoT/kafka-connect-pelion/blob/master/kafka-connect-pelion/config/source-quickstart-pelion.properties).
+An example template configuration of the source connector (`source-quickstart-pelion.properties`) can be found in [the repository](https://github.com/PelionIoT/Connector-for-Apache-Kafka/blob/master/kafka-connect-pelion/config/source-quickstart-pelion.properties).
 You can use it as a starting guide and make any necessary adjustments for your own environment.
 
 The table below outlines information about each configuration setting:
@@ -70,7 +70,7 @@ kafka-avro-console-consumer \
 ### Sink Connector Configuration
 _com.pelion.connect.dm.sink.PelionSinkConnector_
 
-An example template configuration of the sink connector (`sink-quickstart-pelion.properties`) can be found in [the repository](https://github.com/PelionIoT/kafka-connect-pelion/blob/master/kafka-connect-pelion/config/sink-quickstart-pelion.properties).
+An example template configuration of the sink connector (`sink-quickstart-pelion.properties`) can be found in [the repository](https://github.com/PelionIoT/Connector-for-Apache-Kafka/blob/master/kafka-connect-pelion/config/sink-quickstart-pelion.properties).
 You can use it as a starting guide and make any necessary adjustments for your own environment.
 
 The table below outlines information about each configuration setting:
@@ -98,7 +98,7 @@ The table below outlines information about each configuration setting:
       --topic ${topic.prefix}.responses
    ```
 
-2. Startup a producer to send a device request. The format should follow the request [avro schema](https://github.com/PelionIoT/kafka-connect-pelion/blob/master/demo-example/configs/device-request-schema.avsc):
+2. Startup a producer to send a device request. The format should follow the request [avro schema](https://github.com/PelionIoT/Connector-for-Apache-Kafka/blob/master/demo-example/configs/device-request-schema.avsc):
 
    ```
    kafka-avro-console-producer --broker-list localhost:9092 \

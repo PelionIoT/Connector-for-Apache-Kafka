@@ -44,9 +44,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git://github.com/PelionIoT/kafka-connect-pelion.git</connection>
-        <developerConnection>scm:git:git@github.com:PelionIoT/kafka-connect-pelion.git</developerConnection>
-        <url>https://github.com/PelionIoT/kafka-connect-pelion</url>
+        <connection>scm:git:git://github.com/PelionIoT/Connector-for-Apache-Kafka.git</connection>
+        <developerConnection>scm:git:git@github.com:PelionIoT/Connector-for-Apache-Kafka.git</developerConnection>
+        <url>https://github.com/PelionIoT/Connector-for-Apache-Kafka</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -169,12 +169,12 @@
                             <goal>kafka-connect</goal>
                         </goals>
                         <configuration>
-                            <title>Pelion IoT Platform Connector</title>
+                            <title>Pelion IoT Platform Connect</title>
                             <documentationUrl>
-                                https://github.com/PelionIoT/kafka-connect-pelion/blob/master/README.md
+                                https://github.com/PelionIoT/Connector-for-Apache-Kafka/blob/master/README.md
                             </documentationUrl>
                             <description>
-                                Kafka Connect Pelion is a connector plugin for Pelion IoT platform which includes both a Source and a Sink.
+                                Pelion IoT Platform Connect is a connector plugin for Pelion IoT platform which includes both a Source and a Sink.
 
                                 The Source connector is used to consume data from Pelion IoT platform (device registrations, observations and request responses) using Pelion's notification channel mechanism and subsequent store them to configurable topics in Kafka.
 
@@ -186,7 +186,7 @@
 
                             <supportProviderName>Pelion Ltd.</supportProviderName>
                             <supportSummary>
-                                <![CDATA[Pelion supports the source connector alongside community members as part of its
+                                <![CDATA[Pelion supports the connector alongside community members as part of its
                                 <a href="https://pelion.com/">Pelion IoT Platform</a> offering.]]>
                             </supportSummary>
                             <supportUrl>https://www.pelion.com/docs/</supportUrl>

@@ -24,7 +24,7 @@ In order to follow this tutorial, you'll need:
 
 - Clone the demo repository:
   ```
-  $ git clone https://github.com/PelionIoT/kafka-connect-pelion.git
+  $ git clone https://github.com/PelionIoT/Connector-for-Apache-Kafka.git
   ```
 
 - Enter the `demo-example' folder:
