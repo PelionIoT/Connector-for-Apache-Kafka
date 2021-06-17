@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "DeviceRequest",
+  "name": "com.pelion.kafka.connect.DeviceRequestData",
   "fields": [
     {
       "name": "ep",
@@ -29,7 +29,7 @@
     {
       "name": "body",
       "type": {
-        "name": "Body",
+        "name": "com.pelion.kafka.connect.BodyData",
         "type": "record",
         "fields": [
           {
